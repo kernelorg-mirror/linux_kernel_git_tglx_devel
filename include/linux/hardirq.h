@@ -2,6 +2,7 @@
 #ifndef LINUX_HARDIRQ_H
 #define LINUX_HARDIRQ_H
 
+#include <linux/context_tracking_state.h>
 #include <linux/preempt.h>
 #include <linux/lockdep.h>
 #include <linux/ftrace_irq.h>
@@ -26,6 +27,14 @@ static inline void rcu_nmi_exit(void)
 extern void rcu_nmi_enter(void);
 extern void rcu_nmi_exit(void);
 #endif
+
+void __rcu_irq_enter_check_tick(void);
+
+static __always_inline void rcu_irq_enter_check_tick(void)
+{
+	if (context_tracking_enabled())
+		__rcu_irq_enter_check_tick();
+}
 
 /*
  * It is safe to do non-atomic ops on ->hardirq_context,
