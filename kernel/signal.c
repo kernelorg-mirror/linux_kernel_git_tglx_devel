@@ -585,6 +585,7 @@ int dequeue_signal(sigset_t *mask, kernel_siginfo_t *info, enum pid_type *type)
 
 	lockdep_assert_held(&tsk->sighand->siglock);
 
+again:
 	*type = PIDTYPE_PID;
 	signr = __dequeue_signal(&tsk->pending, mask, info);
 	if (!signr) {
@@ -616,8 +617,10 @@ int dequeue_signal(sigset_t *mask, kernel_siginfo_t *info, enum pid_type *type)
 	}
 
 	if (IS_ENABLED(CONFIG_POSIX_TIMERS)) {
-		if (unlikely(info->si_code == SI_TIMER && info->si_sys_private))
-			posixtimer_rearm(info);
+		if (unlikely(info->si_code == SI_TIMER && info->si_sys_private)) {
+			if (!posixtimer_deliver_signal(info))
+				goto again;
+		}
 	}
 
 	return signr;
