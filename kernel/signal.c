@@ -617,7 +617,7 @@ again:
 	}
 
 	if (IS_ENABLED(CONFIG_POSIX_TIMERS)) {
-		if (unlikely(info->si_code == SI_TIMER && info->si_sys_private)) {
+		if (unlikely(info->si_code == SI_TIMER)) {
 			if (!posixtimer_deliver_signal(info))
 				goto again;
 		}
