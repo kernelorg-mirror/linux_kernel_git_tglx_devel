@@ -566,7 +566,12 @@ static void collect_signal(int sig, struct sigpending *list, kernel_siginfo_t *i
 still_pending:
 		list_del_init(&first->list);
 		copy_siginfo(info, &first->info);
-		__sigqueue_free(first);
+		/*
+		 * Do not drop the reference count for posix timer
+		 * signals. That's done in posix_timer_deliver_signal().
+		 */
+		if (info->si_code != SI_TIMER)
+			__sigqueue_free(first);
 	} else {
 		/*
 		 * Ok, it wasn't in the queue.  This must be
@@ -1983,7 +1988,7 @@ static inline struct task_struct *posixtimer_get_target(struct k_itimer *tmr)
 
 int posixtimer_send_sigqueue(struct k_itimer *tmr)
 {
-	struct sigqueue *q = tmr->sigq;
+	struct sigqueue *q = &tmr->sigq;
 	int sig = q->info.si_signo;
 	struct task_struct *t;
 	unsigned long flags;
@@ -2043,9 +2048,12 @@ int posixtimer_send_sigqueue(struct k_itimer *tmr)
 
 	ret = 0;
 	if (unlikely(!list_empty(&q->list))) {
+		/* This holds a reference count already */
 		result = TRACE_SIGNAL_ALREADY_PENDING;
 		goto out;
 	}
+
+	posixtimer_sigqueue_getref(q);
 	posixtimer_queue_sigqueue(q, t, tmr->it_pid_type);
 	result = TRACE_SIGNAL_DELIVERED;
 out:
