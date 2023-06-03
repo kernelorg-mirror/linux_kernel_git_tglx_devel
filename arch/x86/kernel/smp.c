@@ -184,9 +184,6 @@ static void native_stop_other_cpus(int wait)
 	cpumask_clear_cpu(cpu, &cpus_stop_mask);
 
 	if (!cpumask_empty(&cpus_stop_mask)) {
-		/* sync above data before sending IRQ */
-		wmb();
-
 		apic_send_IPI_allbutself(REBOOT_VECTOR);
 
 		/*
@@ -209,9 +206,6 @@ static void native_stop_other_cpus(int wait)
 		 */
 		if (!smp_no_nmi_ipi && !register_stop_handler()) {
 			u32 dm;
-
-			/* Sync above data before sending IRQ */
-			wmb();
 
 			pr_emerg("Shutting down cpus with NMI\n");
 
