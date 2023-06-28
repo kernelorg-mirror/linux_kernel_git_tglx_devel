@@ -78,11 +78,19 @@ extern u16 __read_mostly tlb_lld_1g[NR_INFO];
  */
 
 struct cpuinfo_topology {
+	// Real APIC ID read from the local APIC
 	u16			apicid;
+	// The initial APIC ID provided by CPUID
 	u16			initial_apicid;
 
+	// Physical package ID
 	u16			pkg_id;
+	// Physical die ID on AMD, Relative on Intel
 	u16			die_id;
+	// Compute unit ID - AMD specific
+	u16			cu_id;
+
+	// Core ID relative to the package
 	u16			core_id;
 };
 
@@ -102,7 +110,6 @@ struct cpuinfo_x86 {
 	__u8			x86_phys_bits;
 	/* CPUID returned core id bits: */
 	__u8			x86_coreid_bits;
-	__u8			cu_id;
 	/* Max extended CPUID function supported: */
 	__u32			extended_cpuid_level;
 	/* Maximum supported CPUID level, -1=no CPUID: */
