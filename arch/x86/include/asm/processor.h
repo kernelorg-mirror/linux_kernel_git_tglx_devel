@@ -80,6 +80,8 @@ extern u16 __read_mostly tlb_lld_1g[NR_INFO];
 struct cpuinfo_topology {
 	u16			apicid;
 	u16			initial_apicid;
+
+	u16			pkg_id;
 };
 
 struct cpuinfo_x86 {
@@ -131,8 +133,6 @@ struct cpuinfo_x86 {
 	u16			x86_clflush_size;
 	/* number of cores as seen by the OS: */
 	u16			booted_cores;
-	/* Physical processor id: */
-	u16			phys_proc_id;
 	/* Logical processor id: */
 	u16			logical_proc_id;
 	/* Core id: */
