@@ -1,5 +1,27 @@
 // SPDX-License-Identifier: GPL-2.0-only
-
+/*
+ * CPU/APIC topology
+ *
+ * The APIC IDs describe the system topology in multiple domain levels.
+ * The CPUID topology parser provides the information which part of the
+ * APIC ID is associated to the individual levels:
+ *
+ * [ROOT][PACKAGE][DIE][TILE][MODULE][CORE][THREAD]
+ *
+ * The root space contains the package (socket) IDs.
+ *
+ * Not enumerated levels consume 0 bits space, but conceptually they are
+ * always represented. If e.g. only CORE and THREAD levels are enumerated
+ * then the DIE, MODULE and TILE have the same physical ID as the PACKAGE.
+ *
+ * If SMT is not supported, then the THREAD domain is still used. It then
+ * has the same physical ID as the CORE domain and is the only child of
+ * the core domain.
+ *
+ * This allows a unified view on the system independent of the enumerated
+ * domain levels without requiring any conditionals in the code.
+ */
+#define pr_fmt(fmt) "CPU topo: " fmt
 #include <linux/cpu.h>
 
 #include <xen/xen.h>
@@ -8,6 +30,8 @@
 #include <asm/io_apic.h>
 #include <asm/mpspec.h>
 #include <asm/smp.h>
+
+#include "cpu.h"
 
 /*
  * Map cpu index to physical APIC ID
@@ -22,6 +46,9 @@ DECLARE_BITMAP(phys_cpu_present_map, MAX_LOCAL_APIC) __read_mostly;
 
 /* Used for CPU number allocation and parallel CPU bringup */
 u32 cpuid_to_apicid[] __read_mostly = { [0 ... NR_CPUS - 1] = BAD_APICID, };
+
+/* Bitmaps to mark registered APICs at each topology domain */
+static struct { DECLARE_BITMAP(map, MAX_LOCAL_APIC); } apic_maps[TOPO_MAX_DOMAIN] __ro_after_init;
 
 /*
  * Keep track of assigned, disabled and rejected CPUs. Present assigned
@@ -38,6 +65,18 @@ struct {
 	.boot_cpu_apic_id	= BAD_APICID,
 	.real_bsp_apic_id	= BAD_APICID,
 };
+
+const char *domain_names[TOPO_MAX_DOMAIN] = {
+	[TOPO_SMT_DOMAIN]	= "Thread",
+	[TOPO_CORE_DOMAIN]	= "Core",
+	[TOPO_MODULE_DOMAIN]	= "Module",
+	[TOPO_TILE_DOMAIN]	= "Tile",
+	[TOPO_DIE_DOMAIN]	= "Die",
+	[TOPO_PKG_DOMAIN]	= "Package",
+	[TOPO_ROOT_DOMAIN]	= "Root",
+};
+
+#define domain_weight(_dom)	bitmap_weight(apic_maps[_dom].map, MAX_LOCAL_APIC)
 
 bool arch_match_cpu_phys_id(int cpu, u64 phys_id)
 {
@@ -80,6 +119,17 @@ early_initcall(smp_init_primary_thread_mask);
 #else
 static inline void cpu_mark_primary_thread(unsigned int cpu, unsigned int apicid) { }
 #endif
+
+/*
+ * Convert the APIC ID to a domain level ID by masking out the low bits
+ * including the domain level @dom.
+ */
+static inline u32 topo_apicid(u32 apicid, enum x86_topology_domains dom)
+{
+	if (dom == TOPO_SMT_DOMAIN)
+		return apicid;
+	return apicid & (UINT_MAX << x86_topo_system.dom_shifts[dom - 1]);
+}
 
 static int topo_lookup_cpuid(u32 apic_id)
 {
@@ -126,7 +176,7 @@ static void topo_set_cpuids(unsigned int cpu, u32 apic_id, u32 acpi_id)
  */
 void __init topology_register_apic(u32 apic_id, u32 acpi_id, bool present)
 {
-	int cpu;
+	int cpu, dom;
 
 	if (apic_id >= MAX_LOCAL_APIC) {
 		pr_err_once("APIC ID %x exceeds kernel limit of: %x\n", apic_id, MAX_LOCAL_APIC - 1);
@@ -159,6 +209,10 @@ void __init topology_register_apic(u32 apic_id, u32 acpi_id, bool present)
 	} else {
 		topo_info.nr_disabled_cpus++;
 	}
+
+	/* Register present and possible CPUs in the domain maps */
+	for (dom = TOPO_SMT_DOMAIN; dom < TOPO_ROOT_DOMAIN; dom++)
+		set_bit(topo_apicid(apic_id, dom), apic_maps[dom].map);
 }
 
 /**
@@ -281,6 +335,11 @@ static __init void check_for_kdump_kernel(void)
 
 	topo_info.real_bsp_apic_id = bsp_apicid;
 	clear_bit(bsp_apicid, phys_cpu_present_map);
+	/*
+	 * Remove it from the SMT level, but no propagation as that would
+	 * corrupt the data set.
+	 */
+	clear_bit(bsp_apicid, apic_maps[TOPO_SMT_DOMAIN].map);
 }
 
 void __init topology_init_possible_cpus(void)
@@ -288,7 +347,7 @@ void __init topology_init_possible_cpus(void)
 	unsigned int assigned = topo_info.nr_assigned_cpus;
 	unsigned int disabled = topo_info.nr_disabled_cpus;
 	unsigned int total = assigned + disabled;
-	unsigned int cpu, allowed = 1;
+	unsigned int cpu, dom, allowed = 1;
 
 	if (!restrict_to_up()) {
 		if (total > 1)
@@ -316,6 +375,9 @@ void __init topology_init_possible_cpus(void)
 	pr_info("Allowing %u present CPUs plus %u hotplug CPUs\n", assigned, disabled);
 	if (topo_info.nr_rejected_cpus)
 		pr_info("Rejected CPUs %u\n", topo_info.nr_rejected_cpus);
+
+	for (dom = TOPO_SMT_DOMAIN; dom < TOPO_ROOT_DOMAIN; dom++)
+		pr_info("%-10s: %5u\n", domain_names[dom], domain_weight(dom));
 
 	init_cpu_present(cpumask_of(0));
 	init_cpu_possible(cpumask_of(0));

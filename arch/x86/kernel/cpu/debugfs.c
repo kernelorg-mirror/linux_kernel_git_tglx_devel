@@ -48,14 +48,6 @@ static const struct file_operations dfs_cpu_ops = {
 
 static int dom_debug_show(struct seq_file *m, void *p)
 {
-	static const char *domain_names[TOPO_ROOT_DOMAIN] = {
-		[TOPO_SMT_DOMAIN]	= "Thread",
-		[TOPO_CORE_DOMAIN]	= "Core",
-		[TOPO_MODULE_DOMAIN]	= "Module",
-		[TOPO_TILE_DOMAIN]	= "Tile",
-		[TOPO_DIE_DOMAIN]	= "Die",
-		[TOPO_PKG_DOMAIN]	= "Package",
-	};
 	unsigned int dom, nthreads = 1;
 
 	for (dom = 0; dom < TOPO_ROOT_DOMAIN; dom++) {

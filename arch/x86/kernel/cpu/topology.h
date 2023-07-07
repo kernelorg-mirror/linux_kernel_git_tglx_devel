@@ -48,4 +48,6 @@ static inline void topology_update_dom(struct topo_scan *tscan, enum x86_topolog
 	tscan->dom_ncpus[dom] = ncpus;
 }
 
+extern const char *domain_names[TOPO_MAX_DOMAIN];
+
 #endif /* ARCH_X86_TOPOLOGY_H */
