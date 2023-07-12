@@ -97,6 +97,9 @@ struct cpuinfo_topology {
 	u16			logical_pkg_id;
 	u16			logical_die_id;
 
+	// AMD Node ID and Nodes per Package info
+	u16			amd_node_id;
+
 	// Cache level topology IDs
 	u16			llc_id;
 	u16			l2c_id;
