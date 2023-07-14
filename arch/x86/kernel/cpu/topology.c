@@ -32,17 +32,12 @@ static struct {
 	unsigned int		nr_disabled_cpus;
 	unsigned int		nr_rejected_cpus;
 	u32			boot_cpu_apic_id;
+	u32			real_bsp_apic_id;
 } topo_info __read_mostly = {
 	.nr_assigned_cpus	= 1,
 	.boot_cpu_apic_id	= BAD_APICID,
+	.real_bsp_apic_id	= BAD_APICID,
 };
-
-/*
- * Processor to be disabled specified by kernel parameter
- * disable_cpu_apicid=<int>, mostly used for the kdump 2nd kernel to
- * avoid undefined behaviour caused by sending INIT from AP to BSP.
- */
-static u32 disabled_cpu_apicid __ro_after_init = BAD_APICID;
 
 bool arch_match_cpu_phys_id(int cpu, u64 phys_id)
 {
@@ -142,12 +137,6 @@ void __init topology_register_apic(u32 apic_id, u32 acpi_id, bool present)
 	/* CPU numbers exhausted? */
 	if (topo_info.nr_assigned_cpus >= nr_cpu_ids) {
 		pr_warn_once("CPU limit of %d reached. Ignoring further CPUs\n", nr_cpu_ids);
-		topo_info.nr_rejected_cpus++;
-		return;
-	}
-
-	if (disabled_cpu_apicid == apic_id) {
-		pr_info("Disabling CPU as requested via 'disable_cpu_apicid=0x%x'.\n", apic_id);
 		topo_info.nr_rejected_cpus++;
 		return;
 	}
@@ -270,6 +259,30 @@ static __init bool restrict_to_up(void)
 	return apic_is_disabled;
 }
 
+static __init void check_for_kdump_kernel(void)
+{
+	u32 bsp_apicid;
+
+	/*
+	 * There is no real good way to detect whether this a kdump()
+	 * kernel, but except on the Voyager SMP monstrosity which is not
+	 * longer supported, the real BSP has always the lowest numbered
+	 * APIC ID. If a crash happened on an AP, which then ends up as
+	 * boot CPU in the kdump() kernel, then sending INIT to the real
+	 * BSP would reset the whole system.
+	 */
+	bsp_apicid = find_first_bit(phys_cpu_present_map, MAX_LOCAL_APIC);
+	if (bsp_apicid == topo_info.boot_cpu_apic_id)
+		return;
+
+	pr_warn("Boot CPU APIC ID not the lowest APIC ID: %x > %x\n",
+		topo_info.boot_cpu_apic_id, bsp_apicid);
+	pr_warn("Crash kernel detected. Disabling real BSP to prevent machine INIT\n");
+
+	topo_info.real_bsp_apic_id = bsp_apicid;
+	clear_bit(bsp_apicid, phys_cpu_present_map);
+}
+
 void __init topology_init_possible_cpus(void)
 {
 	unsigned int assigned = topo_info.nr_assigned_cpus;
@@ -278,6 +291,9 @@ void __init topology_init_possible_cpus(void)
 	unsigned int cpu, allowed = 1;
 
 	if (!restrict_to_up()) {
+		if (total > 1)
+			check_for_kdump_kernel();
+
 		if (WARN_ON_ONCE(assigned > nr_cpu_ids)) {
 			disabled += assigned - nr_cpu_ids;
 			assigned = nr_cpu_ids;
@@ -306,6 +322,14 @@ void __init topology_init_possible_cpus(void)
 
 	for (cpu = 0; cpu < allowed; cpu++) {
 		u32 apicid = cpuid_to_apicid[cpu];
+
+		/*
+		 * In case of a kdump() kernel, don't mark the real BSP in
+		 * the present and possible maps. Sending INIT to it resets
+		 * the machine.
+		 */
+		if (apicid != BAD_APICID && apicid == topo_info.real_bsp_apic_id)
+			continue;
 
 		set_cpu_possible(cpu, true);
 
@@ -336,12 +360,3 @@ static int __init setup_possible_cpus(char *str)
 }
 early_param("possible_cpus", setup_possible_cpus);
 #endif
-
-static int __init apic_set_disabled_cpu_apicid(char *arg)
-{
-	if (!arg || !get_option(&arg, &disabled_cpu_apicid))
-		return -EINVAL;
-
-	return 0;
-}
-early_param("disable_cpu_apicid", apic_set_disabled_cpu_apicid);
