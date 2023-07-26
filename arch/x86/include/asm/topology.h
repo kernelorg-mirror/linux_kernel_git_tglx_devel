@@ -190,6 +190,9 @@ static inline bool topology_is_primary_thread(unsigned int cpu)
 {
 	return cpumask_test_cpu(cpu, cpu_primary_thread_mask);
 }
+
+void topology_apply_cmdline_limits_early(void);
+
 #else /* CONFIG_SMP */
 #define topology_max_packages()			(1)
 static inline int
@@ -202,6 +205,7 @@ static inline int topology_max_smt_threads(void) { return 1; }
 static inline bool topology_is_primary_thread(unsigned int cpu) { return true; }
 static inline bool topology_smt_supported(void) { return false; }
 static inline unsigned int topology_amd_nodes_per_pkg(void) { return 0; };
+static inline void topology_apply_cmdline_limits_early(void) { }
 #endif /* !CONFIG_SMP */
 
 static inline void arch_fix_phys_package_id(int num, u32 slot)
