@@ -156,6 +156,8 @@ static inline unsigned int topology_max_die_per_package(void)
 	return __max_dies_per_package;
 }
 
+int topology_get_logical_id(u32 apicid, enum x86_topology_domains at_level);
+
 #ifdef CONFIG_SMP
 #define topology_cluster_id(cpu)		(cpu_data(cpu).topo.l2c_id)
 #define topology_die_cpumask(cpu)		(per_cpu(cpu_die_map, cpu))
