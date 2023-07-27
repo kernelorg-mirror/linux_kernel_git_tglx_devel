@@ -320,14 +320,6 @@ static void notrace start_secondary(void *unused)
 	cpu_startup_entry(CPUHP_AP_ONLINE_IDLE);
 }
 
-/**
- * topology_smt_supported - Check whether SMT is supported by the CPUs
- */
-bool topology_smt_supported(void)
-{
-	return smp_num_siblings > 1;
-}
-
 void __init smp_store_boot_cpu_info(void)
 {
 	struct cpuinfo_x86 *c = &cpu_data(0);

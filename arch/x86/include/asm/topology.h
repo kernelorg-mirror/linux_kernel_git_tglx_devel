@@ -145,6 +145,7 @@ extern const struct cpumask *cpu_clustergroup_mask(int cpu);
 
 extern unsigned int __max_dies_per_package;
 extern unsigned int __max_logical_packages;
+extern unsigned int __max_threads_per_core;
 
 static inline unsigned int topology_max_packages(void)
 {
@@ -178,7 +179,10 @@ static inline int topology_max_smt_threads(void)
 	return __max_smt_threads;
 }
 
-bool topology_smt_supported(void);
+static inline bool topology_smt_supported(void)
+{
+	return __max_threads_per_core > 1;
+}
 
 extern unsigned int __amd_nodes_per_pkg;
 
