@@ -43,7 +43,7 @@ static const char ucode_path[] = "kernel/x86/microcode/GenuineIntel.bin";
 static struct microcode_intel *intel_ucode_patch;
 
 /* last level cache size per core */
-static int llc_size_per_core;
+static unsigned long llc_size_per_core;
 
 /*
  * Returns 1 if update has been found, 0 otherwise.
@@ -777,7 +777,7 @@ static int __init calc_llc_size_per_core(struct cpuinfo_x86 *c)
 {
 	u64 llc_size = c->x86_cache_size * 1024ULL;
 
-	do_div(llc_size, c->x86_max_cores);
+	do_div(llc_size, topology_num_cores_per_package());
 
 	return (int)llc_size;
 }
