@@ -180,19 +180,12 @@ static inline u64 p4_clear_ht_bit(u64 config)
 
 static inline int p4_ht_active(void)
 {
-#ifdef CONFIG_SMP
-	return smp_num_siblings > 1;
-#endif
-	return 0;
+	return topology_smt_supported();
 }
 
 static inline int p4_ht_thread(int cpu)
 {
-#ifdef CONFIG_SMP
-	if (smp_num_siblings == 2)
-		return cpu != cpumask_first(this_cpu_cpumask_var_ptr(cpu_sibling_map));
-#endif
-	return 0;
+	return !topology_is_primary_thread(cpu);
 }
 
 static inline int p4_should_swap_ts(u64 config, int cpu)
