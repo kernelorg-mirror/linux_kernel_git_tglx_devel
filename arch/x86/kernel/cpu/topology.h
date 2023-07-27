@@ -50,4 +50,7 @@ static inline void topology_update_dom(struct topo_scan *tscan, enum x86_topolog
 
 extern const char *domain_names[TOPO_MAX_DOMAIN];
 
+unsigned int topology_unit_count(u32 apicid, enum x86_topology_domains which_units,
+				 enum x86_topology_domains at_level);
+
 #endif /* ARCH_X86_TOPOLOGY_H */
