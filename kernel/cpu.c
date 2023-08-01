@@ -630,6 +630,12 @@ static inline bool cpu_smt_allowed(unsigned int cpu)
 	if (cpu_smt_control == CPU_SMT_ENABLED)
 		return true;
 
+	if (cpu_smt_control == CPU_SMT_NOT_SUPPORTED)
+		return true;
+
+	if (cpu_smt_control == CPU_SMT_NOT_IMPLEMENTED)
+		return true;
+
 	if (topology_is_primary_thread(cpu))
 		return true;
 
