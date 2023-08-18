@@ -456,14 +456,8 @@ static bool early_apply_microcode(u32 cpuid_1_eax, void *ucode, size_t size)
 {
 	struct cont_desc desc = { 0 };
 	struct microcode_amd *mc;
-	u32 rev, dummy, *new_rev;
 	bool ret = false;
-
-#ifdef CONFIG_X86_32
-	new_rev = (u32 *)__pa_nodebug(&ucode_new_rev);
-#else
-	new_rev = &ucode_new_rev;
-#endif
+	u32 rev, dummy;
 
 	desc.cpuid_1_eax = cpuid_1_eax;
 
@@ -484,8 +478,8 @@ static bool early_apply_microcode(u32 cpuid_1_eax, void *ucode, size_t size)
 		return ret;
 
 	if (!__apply_microcode_amd(mc)) {
-		*new_rev = mc->hdr.patch_id;
-		ret      = true;
+		ucode_new_rev = mc->hdr.patch_id;
+		ret = true;
 	}
 
 	return ret;
@@ -514,26 +508,13 @@ static bool get_builtin_microcode(struct cpio_data *cp, unsigned int family)
 
 static void find_blobs_in_containers(unsigned int cpuid_1_eax, struct cpio_data *ret)
 {
-	struct ucode_cpu_info *uci;
 	struct cpio_data cp;
-	const char *path;
-	bool use_pa;
-
-	if (IS_ENABLED(CONFIG_X86_32)) {
-		uci	= (struct ucode_cpu_info *)__pa_nodebug(ucode_cpu_info);
-		path	= (const char *)__pa_nodebug(ucode_path);
-		use_pa	= true;
-	} else {
-		uci     = ucode_cpu_info;
-		path	= ucode_path;
-		use_pa	= false;
-	}
 
 	if (!get_builtin_microcode(&cp, x86_family(cpuid_1_eax)))
-		cp = find_microcode_in_initrd(path, use_pa);
+		cp = find_microcode_in_initrd(ucode_path);
 
 	/* Needed in load_microcode_amd() */
-	uci->cpu_sig.sig = cpuid_1_eax;
+	ucode_cpu_info->cpu_sig.sig = cpuid_1_eax;
 
 	*ret = cp;
 }
@@ -562,7 +543,7 @@ int __init save_microcode_in_initrd_amd(unsigned int cpuid_1_eax)
 	enum ucode_state ret;
 	struct cpio_data cp;
 
-	cp = find_microcode_in_initrd(ucode_path, false);
+	cp = find_microcode_in_initrd(ucode_path);
 	if (!(cp.data && cp.size))
 		return -EINVAL;
 
