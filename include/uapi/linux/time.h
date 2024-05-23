@@ -64,6 +64,16 @@ struct timezone {
 #define CLOCK_TAI			11
 
 #define MAX_CLOCKS			16
+
+/*
+ * PTP clock support. PTP clocks are dynamically configured by associating
+ * a clock ID to a PTP device. The kernel can support up to 16 PTP clocks,
+ * but the actual limit depends on architecture constraints vs. VDSO.
+ */
+#define	CLOCK_PTP			MAX_CLOCKS
+#define	MAX_PTP_CLOCKS			8
+#define CLOCK_PTP_LAST			(CLOCK_PTP + MAX_PTP_CLOCKS - 1)
+
 #define CLOCKS_MASK			(CLOCK_REALTIME | CLOCK_MONOTONIC)
 #define CLOCKS_MONO			CLOCK_MONOTONIC
 

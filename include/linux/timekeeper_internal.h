@@ -14,10 +14,16 @@
 /**
  * timekeeper_ids - IDs for various time keepers in the kernel
  * @TIMEKEEPER_CORE:	The central core timekeeper managing system time
+ * @TIMEKEEPER_PTP:	The first PTP timekeeper
+ * @TIMEKEEPER_PTP_LAST:The last PTP timekeeper
  * @TIMEKEEPERS_MAX:	The maximum number of timekeepers managed
  */
 enum timekeeper_ids {
 	TIMEKEEPER_CORE,
+#ifdef CONFIG_PTP_1588_CLOCK
+	TIMEKEEPER_PTP,
+	TIMEKEEPER_PTP_LAST = TIMEKEEPER_PTP + MAX_PTP_CLOCKS - 1,
+#endif
 	TIMEKEEPERS_MAX,
 };
 
