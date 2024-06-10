@@ -1964,7 +1964,7 @@ static inline struct task_struct *posixtimer_get_target(struct k_itimer *tmr)
 	return t;
 }
 
-int posixtimer_send_sigqueue(struct k_itimer *tmr)
+void posixtimer_send_sigqueue(struct k_itimer *tmr)
 {
 	struct sigqueue *q = &tmr->sigq;
 	int sig = q->info.si_signo;
@@ -2049,7 +2049,6 @@ out:
 	unlock_task_sighand(t, &flags);
 ret:
 	rcu_read_unlock();
-	return 0;
 }
 
 static inline void posixtimer_sig_ignore(struct task_struct *tsk, struct sigqueue *q)
