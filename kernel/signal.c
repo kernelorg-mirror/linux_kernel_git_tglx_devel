@@ -526,8 +526,7 @@ bool unhandled_signal(struct task_struct *tsk, int sig)
 	return !tsk->ptrace;
 }
 
-static void collect_signal(int sig, struct sigpending *list, kernel_siginfo_t *info,
-			   bool *resched_timer)
+static void collect_signal(int sig, struct sigpending *list, kernel_siginfo_t *info)
 {
 	struct sigqueue *q, *first = NULL;
 
@@ -549,12 +548,6 @@ static void collect_signal(int sig, struct sigpending *list, kernel_siginfo_t *i
 still_pending:
 		list_del_init(&first->list);
 		copy_siginfo(info, &first->info);
-
-		*resched_timer =
-			(first->flags & SIGQUEUE_PREALLOC) &&
-			(info->si_code == SI_TIMER) &&
-			(info->si_sys_private);
-
 		__sigqueue_free(first);
 	} else {
 		/*
@@ -571,13 +564,12 @@ still_pending:
 	}
 }
 
-static int __dequeue_signal(struct sigpending *pending, sigset_t *mask,
-			kernel_siginfo_t *info, bool *resched_timer)
+static int __dequeue_signal(struct sigpending *pending, sigset_t *mask, kernel_siginfo_t *info)
 {
 	int sig = next_signal(pending, mask);
 
 	if (sig)
-		collect_signal(sig, pending, info, resched_timer);
+		collect_signal(sig, pending, info);
 	return sig;
 }
 
@@ -589,17 +581,15 @@ static int __dequeue_signal(struct sigpending *pending, sigset_t *mask,
 int dequeue_signal(sigset_t *mask, kernel_siginfo_t *info, enum pid_type *type)
 {
 	struct task_struct *tsk = current;
-	bool resched_timer = false;
 	int signr;
 
 	lockdep_assert_held(&tsk->sighand->siglock);
 
 	*type = PIDTYPE_PID;
-	signr = __dequeue_signal(&tsk->pending, mask, info, &resched_timer);
+	signr = __dequeue_signal(&tsk->pending, mask, info);
 	if (!signr) {
 		*type = PIDTYPE_TGID;
-		signr = __dequeue_signal(&tsk->signal->shared_pending,
-					 mask, info, &resched_timer);
+		signr = __dequeue_signal(&tsk->signal->shared_pending, mask, info);
 
 		if (unlikely(signr == SIGALRM))
 			posixtimer_rearm_itimer(tsk);
@@ -626,7 +616,7 @@ int dequeue_signal(sigset_t *mask, kernel_siginfo_t *info, enum pid_type *type)
 	}
 
 	if (IS_ENABLED(CONFIG_POSIX_TIMERS)) {
-		if (unlikely(resched_timer))
+		if (unlikely(info->si_code == SI_TIMER && info->si_sys_private))
 			posixtimer_rearm(info);
 	}
 
@@ -1010,6 +1000,9 @@ static int __send_signal_locked(int sig, struct kernel_siginfo *info,
 	int ret = 0, result;
 
 	lockdep_assert_held(&t->sighand->siglock);
+
+	if (WARN_ON_ONCE(!is_si_special(info) && info->si_code == SI_TIMER))
+		return 0;
 
 	result = TRACE_SIGNAL_IGNORED;
 	if (!prepare_signal(sig, t, force))
