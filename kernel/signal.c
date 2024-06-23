@@ -3410,12 +3410,14 @@ static int post_copy_siginfo_from_user(kernel_siginfo_t *info,
 				       const siginfo_t __user *from)
 {
 	/*
-	 * Clear the si_sys_private field for timer signals as that's the
+	 * Clear the si_sys_priv* fields for timer signals as that's the
 	 * indicator for rearming a posix timer. User space submitted
 	 * signals are not allowed to inject that.
 	 */
-	if (info->si_code == SI_TIMER)
+	if (info->si_code == SI_TIMER) {
 		info->si_sys_private = 0;
+		info->si_sys_privptr = NULL;
+	}
 
 	if (unlikely(!known_siginfo_layout(info->si_signo, info->si_code))) {
 		char __user *expansion = si_expansion(from);
