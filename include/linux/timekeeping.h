@@ -60,6 +60,12 @@ extern time64_t __ktime_get_real_seconds(void);
 extern time64_t ktime_get_real_seconds(void);
 
 /*
+ * PTP clock interfaces
+ */
+extern bool ktime_get_ptp(clockid_t id, ktime_t *kt);
+extern bool ktime_get_ptp_ts64(clockid_t id, struct timespec64 *kt);
+
+/*
  * ktime_t based interfaces
  */
 
@@ -262,6 +268,12 @@ extern bool timekeeping_rtc_skipsuspend(void);
 extern bool timekeeping_rtc_skipresume(void);
 
 extern void timekeeping_inject_sleeptime64(const struct timespec64 *delta);
+
+/*
+ * PTP clocks
+ */
+bool ktime_get_ptp(clockid_t ptp_clock_id, ktime_t *ts);
+bool ktime_get_ptp_ts64(clockid_t ptp_clock_id, struct timespec64 *ts);
 
 /**
  * struct ktime_timestamps - Simultaneous mono/boot/real timestamps
