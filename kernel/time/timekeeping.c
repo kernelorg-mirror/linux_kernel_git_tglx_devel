@@ -2754,6 +2754,34 @@ bool ktime_get_ptp_ts64(clockid_t id, struct timespec64 *ts)
 	return true;
 }
 
+#ifdef CONFIG_POSIX_TIMERS
+#include "posix-timers.h"
+
+static int ptp_get_res(clockid_t id, struct timespec64 *tp)
+{
+	if (!ptp_valid_clockid(id))
+		return -ENODEV;
+
+	/*
+	 * Blatantly lie for now, but probably it's the right thing to do
+	 * anyway.
+	 */
+	tp->tv_sec = 0;
+	tp->tv_nsec = 1;
+	return 0;
+}
+
+static int ptp_get_timespec(clockid_t id, struct timespec64 *tp)
+{
+	return ktime_get_ptp_ts64(id, tp) ? 0 : -ENODEV;
+}
+
+const struct k_clock clock_ptp = {
+	.clock_getres		= ptp_get_res,
+	.clock_get_timespec	= ptp_get_timespec,
+};
+#endif
+
 static __init void tk_ptp_setup(void)
 {
 	for (int i = TIMEKEEPER_PTP; i <= TIMEKEEPER_PTP_LAST; i++)
