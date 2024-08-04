@@ -119,8 +119,10 @@ static struct tk_fast tk_fast_raw  ____cacheline_aligned = {
 
 #ifdef CONFIG_PTP_1588_CLOCK
 static __init void tk_ptp_setup(void);
+static void tk_ptp_update_clocksource(void);
 #else
 static inline void tk_ptp_setup(void) { }
+static inline void tk_ptp_update_clocksource(void) { }
 #endif
 
 unsigned long timekeeper_lock_irqsave(void)
@@ -1583,6 +1585,8 @@ static int change_clocksource(void *data)
 		timekeeping_update_from_shadow(&tk_core, TK_UPDATE_ALL);
 	}
 
+	tk_ptp_update_clocksource();
+
 	if (old) {
 		if (old->disable)
 			old->disable(old);
@@ -2671,6 +2675,23 @@ EXPORT_SYMBOL(hardpps);
 #endif /* CONFIG_NTP_PPS */
 
 #ifdef CONFIG_PTP_1588_CLOCK
+/* Invoked from timekeeping after a clocksource change */
+static void tk_ptp_update_clocksource(void)
+{
+	for (int i = TIMEKEEPER_PTP; i <= TIMEKEEPER_PTP_LAST; i++) {
+		struct tk_data *tkd = &timekeeper_data[i];
+		struct timekeeper *tks = &tkd->shadow_timekeeper;
+
+		guard(raw_spinlock_irqsave)(&tkd->lock);
+		if (!tks->clock_valid)
+			continue;
+
+		timekeeping_forward_now(tks);
+		tk_setup_internals(tks, tk_core.timekeeper.tkr_mono.clock);
+		timekeeping_update_from_shadow(tkd, TK_UPDATE_ALL);
+	}
+}
+
 static __init void tk_ptp_setup(void)
 {
 	for (int i = TIMEKEEPER_PTP; i <= TIMEKEEPER_PTP_LAST; i++)
