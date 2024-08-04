@@ -2862,10 +2862,26 @@ static int ptp_clock_set(const clockid_t id, const struct timespec64 *tnew)
 	return 0;
 }
 
+static int ptp_clock_adj(const clockid_t id, struct __kernel_timex *txc)
+{
+	struct tk_data *tkd = ptp_get_tk_data(id);
+	struct adjtimex_result result = { };
+
+	if (!tkd)
+		return -ENODEV;
+
+	/*
+	 * @result is ignored for now as there are neither hrtimers nor a
+	 * RTC related to these PTP clocks.
+	 */
+	return __do_adjtimex(tkd, txc, &result);
+}
+
 const struct k_clock clock_ptp = {
 	.clock_getres		= ptp_get_res,
 	.clock_get_timespec	= ptp_get_timespec,
 	.clock_set		= ptp_clock_set,
+	.clock_adj		= ptp_clock_adj,
 };
 #endif
 
