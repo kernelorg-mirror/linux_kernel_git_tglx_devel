@@ -2776,9 +2776,37 @@ static int ptp_get_timespec(clockid_t id, struct timespec64 *tp)
 	return ktime_get_ptp_ts64(id, tp) ? 0 : -ENODEV;
 }
 
+static int ptp_clock_set(const clockid_t id, const struct timespec64 *tnew)
+{
+	struct tk_data *tkd = ptp_get_tk_data(id);
+	struct timekeeper *tks;
+	ktime_t tnow;
+
+	if (!timespec64_valid_settod(tnew))
+		return -EINVAL;
+	if (!tkd)
+		return -ENODEV;
+
+	tks = &tkd->shadow_timekeeper;
+
+	guard(raw_spinlock_irqsave)(&tkd->lock);
+	if (!tks->clock_valid)
+		return -ENODEV;
+
+	/* Get the timekeeper base time */
+	timekeeping_forward_now(tks);
+	tnow = ktime_add(tks->tkr_mono.base, timekeeping_get_ns(&tks->tkr_mono));
+
+	/* Calculate the new PTP offset */
+	tks->offs_ptp = tnow - timespec64_to_ktime(*tnew);
+	timekeeping_update_from_shadow(tkd, TK_UPDATE_ALL);
+	return 0;
+}
+
 const struct k_clock clock_ptp = {
 	.clock_getres		= ptp_get_res,
 	.clock_get_timespec	= ptp_get_timespec,
+	.clock_set		= ptp_clock_set,
 };
 #endif
 
