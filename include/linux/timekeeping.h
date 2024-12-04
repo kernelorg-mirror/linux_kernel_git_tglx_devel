@@ -372,4 +372,14 @@ void read_persistent_wall_and_boot_offset(struct timespec64 *wall_clock,
 extern int update_persistent_clock64(struct timespec64 now);
 #endif
 
+/* PTP related interfaces and helper functions */
+static inline bool ptp_valid_clockid(clockid_t id)
+{
+	return id >= CLOCK_PTP && id <= CLOCK_PTP_LAST;
+}
+
+int timekeeping_assign_ptp_clock(const ktime_t ptp_offset);
+bool timekeeping_get_ptp_clock(const clockid_t id);
+void timekeeping_put_ptp_clock(const clockid_t id);
+
 #endif

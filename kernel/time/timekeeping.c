@@ -16,6 +16,7 @@
 #include <linux/syscore_ops.h>
 #include <linux/clocksource.h>
 #include <linux/jiffies.h>
+#include <linux/refcount.h>
 #include <linux/time.h>
 #include <linux/timex.h>
 #include <linux/tick.h>
@@ -2738,11 +2739,6 @@ EXPORT_SYMBOL(hardpps);
 #endif /* CONFIG_NTP_PPS */
 
 #ifdef CONFIG_PTP_1588_CLOCK
-static inline bool ptp_valid_clockid(clockid_t id)
-{
-	return id >= CLOCK_PTP && id <= CLOCK_PTP_LAST;
-}
-
 static inline unsigned int clockid_to_tkid(unsigned int id)
 {
 	return TIMEKEEPER_PTP + id - CLOCK_PTP;
@@ -2816,6 +2812,7 @@ bool ktime_get_ptp_ts64(clockid_t id, struct timespec64 *ts)
 	*ts = ktime_to_timespec64(now);
 	return true;
 }
+EXPORT_SYMBOL_GPL(ktime_get_ptp_ts64);
 
 #ifdef CONFIG_POSIX_TIMERS
 #include "posix-timers.h"
@@ -2899,6 +2896,136 @@ static void tk_ptp_advance(void)
 			__timekeeping_advance(tkd, TK_ADV_TICK);
 	}
 }
+
+static DEFINE_MUTEX(ptp_clockids_mutex);
+static refcount_t ptp_clockid_refs[MAX_PTP_CLOCKS];
+
+static clockid_t ptp_get_free_clockid(void)
+{
+	lockdep_assert_held(&ptp_clockids_mutex);
+
+	for (unsigned int id = 0; id < MAX_PTP_CLOCKS; id++) {
+		if (!refcount_read(&ptp_clockid_refs[id]))
+			return id + CLOCK_PTP;
+	}
+	return -ENOSPC;
+}
+
+/**
+ * timekeeping_assign_ptp_clock - Assign a POSIX PTP clock ID for non-system timekeeping
+ * @ptp_offset:	The offset between CLOCK_MONOTONIC_RAW and the PTP clock
+ *
+ * Returns: PTP Posix Clock ID on success, error code otherwise
+ */
+int timekeeping_assign_ptp_clock(const ktime_t ptp_offset)
+{
+	struct tk_read_base *tkr_raw = &tk_core.timekeeper.tkr_raw;
+	struct timekeeper *tks;
+	struct tk_data *tkd;
+	ktime_t now;
+	int id;
+
+	guard(mutex)(&ptp_clockids_mutex);
+
+	id = ptp_get_free_clockid();
+	if (id < 0)
+		return id;
+
+	tkd = ptp_get_tk_data(id);
+	tks = &tkd->shadow_timekeeper;
+
+	/* Prevent the core timekeeper from changing. */
+	guard(raw_spinlock_irq)(&tk_core.lock);
+
+	/* Get the current raw time and validate @ptp_offset against it */
+	now = ktime_add_ns(tkr_raw->base, timekeeping_get_ns(tkr_raw));
+	if (ktime_after(ptp_offset, now))
+		return -EINVAL;
+
+	/*
+	 * Setup the PTP clock assuming that the raw core timekeeper clock
+	 * frequency conversion is close enough. PTP userspace has to
+	 * adjust for the deviation via clock_adjtime(2).
+	 */
+	guard(raw_spinlock_nested)(&tkd->lock);
+
+	/* Remove leftovers of a previous registration */
+	memset(tks, 0, sizeof(*tks));
+	/* Restore the timekeeper id */
+	tks->id = tkd->timekeeper.id;
+	/* Setup the timekeeper based on the current system clocksource */
+	tk_setup_internals(tks, tk_core.timekeeper.tkr_mono.clock);
+
+	/*
+	 * All offsets are zero, so all clocks of this timekeeper start
+	 * from zero. Transfer the base time values of CLOCK_MONOTONIC_RAW
+	 * to make @ptp_offset relative to it.
+	 *
+	 * The clock can be steered via clock_adjtime(2) afterwards.
+	 */
+	tks->tkr_mono.cycle_last = tkr_raw->cycle_last;
+	tks->tkr_raw.cycle_last = tkr_raw->cycle_last;
+
+	tks->tkr_mono.xtime_nsec = tkr_raw->xtime_nsec;
+	tks->tkr_raw.xtime_nsec = tkr_raw->xtime_nsec;
+
+	tks->xtime_sec = tks->raw_sec = tk_core.timekeeper.raw_sec;
+
+	/*
+	 * Store the provided initial PTP offset to transform
+	 * CLOCK_MONOTONIC time into the requested PTP clock.
+	 */
+	tks->offs_ptp = ptp_offset;
+
+	/* Mark it valid and set it live */
+	refcount_inc(&ptp_clockid_refs[id - CLOCK_PTP]);
+	tks->clock_valid = true;
+	timekeeping_update_from_shadow(tkd, TK_UPDATE_ALL);
+	return id;
+}
+EXPORT_SYMBOL_GPL(timekeeping_assign_ptp_clock);
+
+/**
+ * timekeeping_get_ptp_clock - Get a reference on a existing PTP clock ID
+ * @id:		The clock ID to get a reference to
+ *
+ * Returns: true on success, false otherwise
+ */
+bool timekeeping_get_ptp_clock(const clockid_t id)
+{
+	guard(mutex)(&ptp_clockids_mutex);
+
+	if (WARN_ON_ONCE(!ptp_valid_clockid(id)))
+		return false;
+	if (WARN_ON_ONCE(!refcount_inc_not_zero(&ptp_clockid_refs[id - CLOCK_PTP])))
+		return false;
+	return true;
+}
+EXPORT_SYMBOL_GPL(timekeeping_get_ptp_clock);
+
+/**
+ * timekeeping_put_ptp_clock - Put a reference on a existing PTP clock ID
+ * @id:		The clock ID to put the reference on
+ */
+void timekeeping_put_ptp_clock(const clockid_t id)
+{
+	struct tk_data *tkd;
+
+	guard(mutex)(&ptp_clockids_mutex);
+
+	if (WARN_ON_ONCE(!ptp_valid_clockid(id)))
+		return;
+
+	if (!refcount_dec_and_test(&ptp_clockid_refs[id - CLOCK_PTP]))
+		return;
+
+	/* Last reference dropped, invalidate the clock */
+	tkd = ptp_get_tk_data(id);
+	guard(raw_spinlock_irq)(&tkd->lock);
+	tkd->shadow_timekeeper.clock_valid = false;
+	timekeeping_update_from_shadow(tkd, TK_UPDATE_ALL);
+}
+EXPORT_SYMBOL_GPL(timekeeping_put_ptp_clock);
 
 static __init void tk_ptp_setup(void)
 {
