@@ -2672,3 +2672,12 @@ static __init void tk_ptp_setup(void)
 		tkd_basic_setup(&timekeeper_data[i], i, false);
 }
 #endif /* CONFIG_PTP_1588_CLOCK */
+
+/*
+ * Invoked from NTP with the time keeper lock held, so lockless access is
+ * fine.
+ */
+long ktime_get_ntp_seconds(unsigned int id)
+{
+	return timekeeper_data[id].timekeeper.xtime_sec;
+}
