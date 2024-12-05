@@ -1476,6 +1476,7 @@ EXPORT_SYMBOL(do_settimeofday64);
 static int __timekeeping_inject_offset(struct tk_data *tkd, const struct timespec64 *ts)
 {
 	struct timekeeper *tks = &tkd->shadow_timekeeper;
+	bool ptp_clock = tks->id != TIMEKEEPER_CORE;
 	struct timespec64 tmp;
 
 	if (ts->tv_nsec < 0 || ts->tv_nsec >= NSEC_PER_SEC)
@@ -1483,16 +1484,29 @@ static int __timekeeping_inject_offset(struct tk_data *tkd, const struct timespe
 
 	timekeeping_forward_now(tks);
 
-	/* Make sure the proposed value is valid */
-	tmp = timespec64_add(tk_xtime(tks), *ts);
-	if (timespec64_compare(&tks->wall_to_monotonic, ts) > 0 ||
-	    !timespec64_valid_settod(&tmp)) {
-		timekeeping_restore_shadow(tkd);
-		return -EINVAL;
+	if (!ptp_clock) {
+		/* Make sure the proposed value is valid */
+		tmp = timespec64_add(tk_xtime(tks), *ts);
+		if (timespec64_compare(&tks->wall_to_monotonic, ts) > 0 ||
+		    !timespec64_valid_settod(&tmp)) {
+			timekeeping_restore_shadow(tkd);
+			return -EINVAL;
+		}
+
+		tk_xtime_add(tks, ts);
+		tk_set_wall_to_mono(tks, timespec64_sub(tks->wall_to_monotonic, *ts));
+	} else if (IS_ENABLED(CONFIG_PTP_1588_CLOCK)) {
+		struct tk_read_base *tkr_mono = &tks->tkr_mono;
+		ktime_t now = ktime_add_ns(tkr_mono->base, timekeeping_get_ns(tkr_mono));
+		ktime_t offs = ktime_add(tks->offs_ptp, timespec64_to_ktime(*ts));
+
+		if (ktime_after(offs, now)) {
+			timekeeping_restore_shadow(tkd);
+			return -EINVAL;
+		}
+		tks->offs_ptp = offs;
 	}
 
-	tk_xtime_add(tks, ts);
-	tk_set_wall_to_mono(tks, timespec64_sub(tks->wall_to_monotonic, *ts));
 	timekeeping_update_from_shadow(tkd, TK_UPDATE_ALL);
 	return 0;
 }
