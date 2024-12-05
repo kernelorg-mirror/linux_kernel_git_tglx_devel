@@ -130,9 +130,11 @@ static struct tk_fast tk_fast_raw  ____cacheline_aligned = {
 
 #ifdef CONFIG_PTP_1588_CLOCK
 static __init void tk_ptp_setup(void);
+static void tk_ptp_advance(void);
 static void tk_ptp_update_clocksource(void);
 #else
 static inline void tk_ptp_setup(void) { }
+static inline void tk_ptp_advance(void) { }
 static inline void tk_ptp_update_clocksource(void) { }
 #endif
 
@@ -2337,11 +2339,13 @@ static bool timekeeping_advance(enum timekeeping_adv_mode mode)
 /**
  * update_wall_time - Uses the current clocksource to increment the wall time
  *
+ * It also updates eventually installed PTP clock timekeepers
  */
 void update_wall_time(void)
 {
 	if (timekeeping_advance(TK_ADV_TICK))
 		clock_was_set_delayed();
+	tk_ptp_advance();
 }
 
 /**
@@ -2884,6 +2888,17 @@ const struct k_clock clock_ptp = {
 	.clock_adj		= ptp_clock_adj,
 };
 #endif
+
+static void tk_ptp_advance(void)
+{
+	for (int i = TIMEKEEPER_PTP; i <= TIMEKEEPER_PTP_LAST; i++) {
+		struct tk_data *tkd = &timekeeper_data[i];
+
+		guard(raw_spinlock)(&tkd->lock);
+		if (tkd->shadow_timekeeper.clock_valid)
+			__timekeeping_advance(tkd, TK_ADV_TICK);
+	}
+}
 
 static __init void tk_ptp_setup(void)
 {
