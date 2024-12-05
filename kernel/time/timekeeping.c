@@ -58,6 +58,17 @@ static struct tk_data timekeeper_data[TIMEKEEPERS_MAX];
 /* The core timekeeper */
 #define tk_core		(timekeeper_data[TIMEKEEPER_CORE])
 
+#ifdef CONFIG_PTP_1588_CLOCK
+static inline bool tk_get_ptp_ts64(unsigned int tkid, struct timespec64 *ts)
+{
+	return ktime_get_ptp_ts64(CLOCK_PTP + tkid - TIMEKEEPER_PTP, ts);
+}
+#else
+static inline bool tk_get_ptp_ts64(unsigned int tkid, struct timespec64 *ts)
+{
+	return false;
+}
+#endif
 
 /* flag for if timekeeping is suspended */
 int __read_mostly timekeeping_suspended;
@@ -2528,7 +2539,7 @@ ktime_t ktime_get_update_offsets_now(unsigned int *cwsseq, ktime_t *offs_real,
 /*
  * timekeeping_validate_timex - Ensures the timex is ok for use in do_adjtimex
  */
-static int timekeeping_validate_timex(const struct __kernel_timex *txc)
+static int timekeeping_validate_timex(const struct __kernel_timex *txc, bool ptp_clock)
 {
 	if (txc->modes & ADJ_ADJTIME) {
 		/* singleshot must not be used with any other mode bits */
@@ -2587,6 +2598,21 @@ static int timekeeping_validate_timex(const struct __kernel_timex *txc)
 			return -EINVAL;
 	}
 
+	if (!ptp_clock)
+		return 0;
+
+	/* PTP clocks are TAI based and do not have leap seconds */
+	if (txc->status & (STA_INS | STA_DEL))
+		return -EINVAL;
+
+	/* No TAI offset setting */
+	if (txc->modes & ADJ_TAI)
+		return -EINVAL;
+
+	/* No PPS support either */
+	if (txc->status & (STA_PPSFREQ | STA_PPSTIME))
+		return -EINVAL;
+
 	return 0;
 }
 
@@ -2614,18 +2640,23 @@ struct adjtimex_result {
 static int __do_adjtimex(struct tk_data *tkd, struct __kernel_timex *txc,
 			 struct adjtimex_result *result)
 {
+	bool ptp_clock = tkd->timekeeper.id != TIMEKEEPER_CORE;
 	struct timekeeper *tks = &tkd->shadow_timekeeper;
 	struct timespec64 ts;
 	s32 orig_tai, tai;
 	int ret;
 
 	/* Validate the data before disabling interrupts */
-	ret = timekeeping_validate_timex(txc);
+	ret = timekeeping_validate_timex(txc, ptp_clock);
 	if (ret)
 		return ret;
 	add_device_randomness(txc, sizeof(*txc));
 
-	ktime_get_real_ts64(&ts);
+	if (!ptp_clock)
+		ktime_get_real_ts64(&ts);
+	else if (IS_ENABLED(CONFIG_PTP_1588_CLOCK))
+		tk_get_ptp_ts64(tkd->timekeeper.id, &ts);
+
 	add_device_randomness(&ts, sizeof(ts));
 
 	guard(raw_spinlock_irqsave)(&tkd->lock);
