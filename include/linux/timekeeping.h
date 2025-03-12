@@ -44,6 +44,7 @@ extern void ktime_get_ts64(struct timespec64 *ts);
 extern void ktime_get_real_ts64(struct timespec64 *tv);
 extern void ktime_get_coarse_ts64(struct timespec64 *ts);
 extern void ktime_get_coarse_real_ts64(struct timespec64 *ts);
+extern void ktime_get_clock_ts64(clockid_t id, struct timespec64 *ts);
 
 /* Multigrain timestamp interfaces */
 extern void ktime_get_coarse_real_ts64_mg(struct timespec64 *ts);
@@ -62,8 +63,13 @@ extern time64_t ktime_get_real_seconds(void);
 /*
  * PTP clock interfaces
  */
+#ifdef CONFIG_PTP_1588_CLOCK
 extern bool ktime_get_ptp(clockid_t id, ktime_t *kt);
 extern bool ktime_get_ptp_ts64(clockid_t id, struct timespec64 *kt);
+#else
+static inline bool ktime_get_ptp(clockid_t id, ktime_t *kt) { return false; }
+static inline bool ktime_get_ptp_ts64(clockid_t id, struct timespec64 *kt) { return false; }
+#endif
 
 /*
  * ktime_t based interfaces

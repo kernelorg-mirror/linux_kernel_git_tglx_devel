@@ -1667,6 +1667,29 @@ void ktime_get_raw_ts64(struct timespec64 *ts)
 EXPORT_SYMBOL(ktime_get_raw_ts64);
 
 /**
+ * ktime_get_clock_ts64 - Returns time of a clock in a timespec
+ * @id:		Posix clock ID of the clock to read
+ * @ts:		pointer to the timespec64 to be set
+ */
+void ktime_get_clock_ts64(clockid_t id, struct timespec64 *ts)
+{
+	switch (id) {
+	case CLOCK_REALTIME:
+		ktime_get_real_ts64(ts);
+		return;
+	case CLOCK_MONOTONIC:
+		ktime_get_ts64(ts);
+		return;
+	case CLOCK_MONOTONIC_RAW:
+		ktime_get_raw_ts64(ts);
+		return;
+	default:
+		WARN_ON_ONCE(!ktime_get_ptp_ts64(id, ts));
+	}
+}
+EXPORT_SYMBOL_GPL(ktime_get_clock_ts64);
+
+/**
  * timekeeping_valid_for_hres - Check if timekeeping is suitable for hres
  */
 int timekeeping_valid_for_hres(void)
