@@ -25,6 +25,10 @@
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
+#ifndef __KERNEL__
+#include <limits.h>
+#endif
+
 /*
  * Bits of the ptp_extts_request.flags field:
  */
@@ -75,6 +79,9 @@
  * No flags are valid for the original PTP_PEROUT_REQUEST ioctl
  */
 #define PTP_PEROUT_V1_VALID_FLAGS	(0)
+
+#define PTP_INDEX_CLOCKID_NONE		UINT_MAX
+#define PTP_INDEX_CLOCKID_NEW		(UINT_MAX - 1)
 
 /*
  * struct ptp_clock_time - represents a time value

@@ -15,6 +15,7 @@
 #include <linux/syscalls.h>
 #include <linux/uaccess.h>
 #include <linux/debugfs.h>
+#include <linux/refcount.h>
 #include <linux/xarray.h>
 #include <uapi/linux/sched/types.h>
 
@@ -34,6 +35,7 @@ const struct class ptp_class = {
 
 static dev_t ptp_devt;
 
+static DEFINE_MUTEX(ptp_clock_mutex);
 static DEFINE_XARRAY_ALLOC(ptp_clocks_map);
 
 /* time stamp event queue operations */
@@ -205,7 +207,11 @@ static void ptp_clock_release(struct device *dev)
 	bitmap_free(tsevq->mask);
 	kfree(tsevq);
 	debugfs_remove(ptp->debugfs_root);
-	xa_erase(&ptp_clocks_map, ptp->index);
+	scoped_guard (mutex, &ptp_clock_mutex) {
+		xa_erase(&ptp_clocks_map, ptp->index);
+		if (ptp_valid_clockid(ptp->ptp_clockid))
+			timekeeping_put_ptp_clock(ptp->ptp_clockid);
+	}
 	kfree(ptp);
 }
 
@@ -251,8 +257,12 @@ struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
 		goto no_memory;
 	}
 
-	err = xa_alloc(&ptp_clocks_map, &index, ptp, xa_limit_31b,
-		       GFP_KERNEL);
+	scoped_guard(mutex, &ptp_clock_mutex) {
+		/* Initialize first so a lookup in ptp_manage_clockid() fails */
+		ptp->ptp_clockid = PTP_CLOCK_NONE;
+		err = xa_alloc(&ptp_clocks_map, &index, ptp, xa_limit_31b,
+			       GFP_KERNEL);
+	}
 	if (err)
 		goto no_slot;
 
@@ -260,7 +270,6 @@ struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
 	ptp->info = info;
 	ptp->devid = MKDEV(major, index);
 	ptp->index = index;
-	ptp->ptp_clockid = PTP_CLOCK_NONE;
 	INIT_LIST_HEAD(&ptp->tsevqs);
 	queue = kzalloc(sizeof(*queue), GFP_KERNEL);
 	if (!queue) {
@@ -516,7 +525,42 @@ EXPORT_SYMBOL(ptp_cancel_worker_sync);
 
 int ptp_manage_clockid(struct ptp_clock *ptp, unsigned int index)
 {
-	return -ENOTSUPP;
+	struct ptp_clock *peer;
+
+	guard(mutex)(&ptp_clock_mutex);
+
+	if (index == PTP_INDEX_CLOCKID_NONE) {
+		if (!ptp_valid_clockid(ptp->ptp_clockid))
+			return -EINVAL;
+		timekeeping_put_ptp_clock(ptp->ptp_clockid);
+		return 0;
+	}
+
+	if (index == PTP_INDEX_CLOCKID_NEW) {
+		int id = timekeeping_assign_ptp_clock(0);
+
+		if (id < 0)
+			return id;
+		ptp->ptp_clockid = id;
+		return 0;
+	}
+
+	/*
+	 * Try to look up the peer clock by @index to share the clock ID
+	 * with it.
+	 */
+	peer = xa_load(&ptp_clocks_map, index);
+	if (!peer)
+		return -ENODEV;
+
+	if (!ptp_valid_clockid(peer->ptp_clockid))
+		return -EINVAL;
+
+	if (!timekeeping_get_ptp_clock(peer->ptp_clockid))
+		return -EINVAL;
+
+	ptp->ptp_clockid = peer->ptp_clockid;
+	return 0;
 }
 
 /* module operations */
