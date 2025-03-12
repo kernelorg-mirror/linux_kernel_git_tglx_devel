@@ -28,7 +28,7 @@ static ssize_t max_phase_adjustment_show(struct device *dev,
 }
 static DEVICE_ATTR_RO(max_phase_adjustment);
 
-#define PTP_SHOW_INT(name, var)						\
+#define PTP_DRIVER_SHOW_INT(name, var)						\
 static ssize_t var##_show(struct device *dev,				\
 			   struct device_attribute *attr, char *page)	\
 {									\
@@ -37,12 +37,22 @@ static ssize_t var##_show(struct device *dev,				\
 }									\
 static DEVICE_ATTR(name, 0444, var##_show, NULL);
 
-PTP_SHOW_INT(max_adjustment, max_adj);
-PTP_SHOW_INT(n_alarms, n_alarm);
-PTP_SHOW_INT(n_external_timestamps, n_ext_ts);
-PTP_SHOW_INT(n_periodic_outputs, n_per_out);
-PTP_SHOW_INT(n_programmable_pins, n_pins);
-PTP_SHOW_INT(pps_available, pps);
+#define PTP_SHOW_INT(name, var)						\
+static ssize_t var##_show(struct device *dev,				\
+			   struct device_attribute *attr, char *page)	\
+{									\
+	struct ptp_clock *ptp = dev_get_drvdata(dev);			\
+	return sysfs_emit(page, "%d\n", ptp->var);	\
+}									\
+static DEVICE_ATTR(name, 0444, var##_show, NULL);
+
+PTP_DRIVER_SHOW_INT(max_adjustment, max_adj);
+PTP_DRIVER_SHOW_INT(n_alarms, n_alarm);
+PTP_DRIVER_SHOW_INT(n_external_timestamps, n_ext_ts);
+PTP_DRIVER_SHOW_INT(n_periodic_outputs, n_per_out);
+PTP_DRIVER_SHOW_INT(n_programmable_pins, n_pins);
+PTP_DRIVER_SHOW_INT(pps_available, pps);
+PTP_SHOW_INT(phc_index, index);
 
 static ssize_t extts_enable_store(struct device *dev,
 				  struct device_attribute *attr,
@@ -328,6 +338,7 @@ static struct attribute *ptp_attrs[] = {
 	&dev_attr_n_periodic_outputs.attr,
 	&dev_attr_n_programmable_pins.attr,
 	&dev_attr_pps_available.attr,
+	&dev_attr_phc_index.attr,
 
 	&dev_attr_extts_enable.attr,
 	&dev_attr_fifo.attr,
