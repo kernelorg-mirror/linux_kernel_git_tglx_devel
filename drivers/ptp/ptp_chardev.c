@@ -156,6 +156,19 @@ int ptp_release(struct posix_clock_context *pccontext)
 	return 0;
 }
 
+static inline bool clockid_valid(clockid_t id, clockid_t ptp_cid)
+{
+	switch (id) {
+	case CLOCK_REALTIME:
+	case CLOCK_MONOTONIC:
+	case CLOCK_MONOTONIC_RAW:
+		return true;
+	case CLOCK_PTP:
+		return ptp_valid_clockid(ptp_cid);
+	}
+	return false;
+}
+
 long ptp_ioctl(struct posix_clock_context *pccontext, unsigned int cmd,
 	       unsigned long arg)
 {
@@ -359,15 +372,17 @@ long ptp_ioctl(struct posix_clock_context *pccontext, unsigned int cmd,
 			extoff = NULL;
 			break;
 		}
+
 		if (extoff->n_samples > PTP_MAX_SAMPLES ||
 		    extoff->rsv[0] || extoff->rsv[1] ||
-		    (extoff->clockid != CLOCK_REALTIME &&
-		     extoff->clockid != CLOCK_MONOTONIC &&
-		     extoff->clockid != CLOCK_MONOTONIC_RAW)) {
+		    !clockid_valid(extoff->clockid, ptp->ptp_clockid)) {
 			err = -EINVAL;
 			break;
 		}
-		sts.clockid = extoff->clockid;
+
+		sts.clockid = extoff->clockid != CLOCK_PTP ?
+				extoff->clockid : ptp->ptp_clockid;
+
 		for (i = 0; i < extoff->n_samples; i++) {
 			err = ptp->info->gettimex64(ptp->info, &ts, &sts);
 			if (err)

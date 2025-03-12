@@ -24,6 +24,8 @@
 #define PTP_DEFAULT_MAX_VCLOCKS 20
 #define PTP_MAX_CHANNELS 2048
 
+#define PTP_CLOCK_NONE		(CLOCK_PTP_LAST + 1)
+
 struct timestamp_event_queue {
 	struct ptp_extts_event buf[PTP_MAX_TIMESTAMPS];
 	int head;
@@ -39,6 +41,7 @@ struct ptp_clock {
 	struct posix_clock clock;
 	struct device dev;
 	struct ptp_clock_info *info;
+	clockid_t ptp_clockid;
 	dev_t devid;
 	int index; /* index into clocks.map */
 	struct pps_device *pps_source;
@@ -154,4 +157,7 @@ void ptp_cleanup_pin_groups(struct ptp_clock *ptp);
 
 struct ptp_vclock *ptp_vclock_register(struct ptp_clock *pclock);
 void ptp_vclock_unregister(struct ptp_vclock *vclock);
+
+int ptp_manage_clockid(struct ptp_clock *ptp, unsigned int index);
+
 #endif

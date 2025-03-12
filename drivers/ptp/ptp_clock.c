@@ -260,6 +260,7 @@ struct ptp_clock *ptp_clock_register(struct ptp_clock_info *info,
 	ptp->info = info;
 	ptp->devid = MKDEV(major, index);
 	ptp->index = index;
+	ptp->ptp_clockid = PTP_CLOCK_NONE;
 	INIT_LIST_HEAD(&ptp->tsevqs);
 	queue = kzalloc(sizeof(*queue), GFP_KERNEL);
 	if (!queue) {
@@ -512,6 +513,11 @@ void ptp_cancel_worker_sync(struct ptp_clock *ptp)
 	kthread_cancel_delayed_work_sync(&ptp->aux_work);
 }
 EXPORT_SYMBOL(ptp_cancel_worker_sync);
+
+int ptp_manage_clockid(struct ptp_clock *ptp, unsigned int index)
+{
+	return -ENOTSUPP;
+}
 
 /* module operations */
 

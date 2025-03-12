@@ -328,6 +328,33 @@ out:
 }
 static DEVICE_ATTR_RW(max_vclocks);
 
+static ssize_t ptp_clockid_store(struct device *dev,
+				 struct device_attribute *attr,
+				 const char *buf, size_t count)
+{
+	struct ptp_clock *ptp = dev_get_drvdata(dev);
+	unsigned int index;
+	int err;
+
+	if (kstrtouint(buf, 0, &index))
+		return -EINVAL;
+
+	err = ptp_manage_clockid(ptp, index);
+	return err < 0 ? err : count;
+}
+
+static ssize_t ptp_clockid_show(struct device *dev,
+				struct device_attribute *attr, char *page)
+{
+	struct ptp_clock *ptp = dev_get_drvdata(dev);
+
+	if (ptp->ptp_clockid == PTP_CLOCK_NONE)
+		return sysfs_emit(page, "%s\n", "none");
+
+	return sysfs_emit(page, "%d\n", ptp->ptp_clockid);
+}
+static DEVICE_ATTR_RW(ptp_clockid);
+
 static struct attribute *ptp_attrs[] = {
 	&dev_attr_clock_name.attr,
 
@@ -346,6 +373,7 @@ static struct attribute *ptp_attrs[] = {
 	&dev_attr_pps_enable.attr,
 	&dev_attr_n_vclocks.attr,
 	&dev_attr_max_vclocks.attr,
+	&dev_attr_ptp_clockid.attr,
 	NULL
 };
 
