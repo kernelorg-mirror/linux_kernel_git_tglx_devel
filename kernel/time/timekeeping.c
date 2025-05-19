@@ -131,9 +131,11 @@ static struct tk_fast tk_fast_raw  ____cacheline_aligned = {
 #ifdef CONFIG_POSIX_AUX_CLOCKS
 static __init void tk_aux_setup(void);
 static void tk_aux_update_clocksource(void);
+static void tk_aux_advance(void);
 #else
 static inline void tk_aux_setup(void) { }
 static inline void tk_aux_update_clocksource(void) { }
+static inline void tk_aux_advance(void) { }
 #endif
 
 unsigned long timekeeper_lock_irqsave(void)
@@ -2312,11 +2314,13 @@ static bool timekeeping_advance(enum timekeeping_adv_mode mode)
 /**
  * update_wall_time - Uses the current clocksource to increment the wall time
  *
+ * It also updates the enabled auxiliary clock timekeepers
  */
 void update_wall_time(void)
 {
 	if (timekeeping_advance(TK_ADV_TICK))
 		clock_was_set_delayed();
+	tk_aux_advance();
 }
 
 /**
@@ -2754,6 +2758,20 @@ static void tk_aux_update_clocksource(void)
 		timekeeping_forward_now(tks);
 		tk_setup_internals(tks, tk_core.timekeeper.tkr_mono.clock);
 		timekeeping_update_from_shadow(tkd, TK_UPDATE_ALL);
+	}
+}
+
+static void tk_aux_advance(void)
+{
+	unsigned long active = READ_ONCE(aux_timekeepers);
+	unsigned int id;
+
+	for_each_set_bit(id, &active, BITS_PER_LONG) {
+		struct tk_data *tkd = &timekeeper_data[id + TIMEKEEPER_AUX_FIRST];
+
+		guard(raw_spinlock)(&tkd->lock);
+		if (tkd->shadow_timekeeper.clock_valid)
+			__timekeeping_advance(tkd, TK_ADV_TICK);
 	}
 }
 
