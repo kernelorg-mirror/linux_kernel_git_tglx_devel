@@ -2760,9 +2760,48 @@ static int aux_get_timespec(clockid_t id, struct timespec64 *tp)
 	return ktime_get_aux_ts64(id, tp) ? 0 : -ENODEV;
 }
 
+static int aux_clock_set(const clockid_t id, const struct timespec64 *tnew)
+{
+	struct tk_data *tkd = aux_get_tk_data(id);
+	struct timekeeper *tks;
+	ktime_t tnow, nsecs;
+
+	if (!timespec64_valid_settod(tnew))
+		return -EINVAL;
+	if (!tkd)
+		return -ENODEV;
+
+	tks = &tkd->shadow_timekeeper;
+
+	guard(raw_spinlock_irq)(&tkd->lock);
+	if (!tks->clock_valid)
+		return -ENODEV;
+
+	/* Forward the timekeeper base time */
+	timekeeping_forward_now(tks);
+	/*
+	 * Get the updated base time. tkr_mono.base has not been
+	 * updated yet, so do that first. That makes the update
+	 * in timekeeping_update_from_shadow() redundant, but
+	 * that's harmless. After that @tnow can be calculated
+	 * by using tkr_mono::cycle_last, which has been set
+	 * by timekeeping_forward_now().
+	 */
+	tk_update_ktime_data(tks);
+	nsecs = timekeeping_cycles_to_ns(&tks->tkr_mono, tks->tkr_mono.cycle_last);
+	tnow = ktime_add(tks->tkr_mono.base, nsecs);
+
+	/* Calculate the new AUX offset */
+	tks->offs_aux = ktime_sub(timespec64_to_ktime(*tnew), tnow);
+
+	timekeeping_update_from_shadow(tkd, TK_UPDATE_ALL);
+	return 0;
+}
+
 const struct k_clock clock_aux = {
 	.clock_getres		= aux_get_res,
 	.clock_get_timespec	= aux_get_timespec,
+	.clock_set		= aux_clock_set,
 };
 
 static __init void tk_aux_setup(void)
