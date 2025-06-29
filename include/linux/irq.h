@@ -191,59 +191,75 @@ struct irq_data {
  * Bit masks for irq_common_data.state_use_accessors
  *
  * IRQD_TRIGGER_MASK		- Mask for the trigger type bits
- * IRQD_SETAFFINITY_PENDING	- Affinity setting is pending
- * IRQD_ACTIVATED		- Interrupt has already been activated
- * IRQD_NO_BALANCING		- Balancing disabled for this IRQ
- * IRQD_PER_CPU			- Interrupt is per cpu
- * IRQD_AFFINITY_SET		- Interrupt affinity was set
  * IRQD_LEVEL			- Interrupt is level triggered
- * IRQD_WAKEUP_STATE		- Interrupt is configured for wakeup
- *				  from suspend
- * IRQD_IRQ_DISABLED		- Disabled state of the interrupt
- * IRQD_IRQ_MASKED		- Masked state of the interrupt
- * IRQD_IRQ_INPROGRESS		- In progress state of the interrupt
- * IRQD_WAKEUP_ARMED		- Wakeup mode armed
- * IRQD_FORWARDED_TO_VCPU	- The interrupt is forwarded to a VCPU
- * IRQD_AFFINITY_MANAGED	- Affinity is auto-managed by the kernel
+ *
+ * IRQD_ACTIVATED		- Interrupt has already been activated
  * IRQD_IRQ_STARTED		- Startup state of the interrupt
  * IRQD_MANAGED_SHUTDOWN	- Interrupt was shutdown due to empty affinity
- *				  mask. Applies only to affinity managed irqs.
+ *
+ * IRQD_IRQ_DISABLED		- Disabled state of the interrupt
+ * IRQD_IRQ_MASKED		- Masked state of the interrupt
+ *
+ * IRQD_AFFINITY_MANAGED	- Affinity is auto-managed by the kernel
+ * IRQD_SETAFFINITY_PENDING	- Affinity setting is pending
+ * IRQD_AFFINITY_SET		- Interrupt affinity was set
+ * IRQD_AFFINITY_ON_ACTIVATE	- Affinity is set on activation. Don't call
  * IRQD_SINGLE_TARGET		- IRQ allows only a single affinity target
- * IRQD_DEFAULT_TRIGGER_SET	- Expected trigger already been set
- * IRQD_CAN_RESERVE		- Can use reservation mode
+ *
+ * IRQD_NO_BALANCING		- Balancing disabled for this IRQ
+ * IRQD_PER_CPU			- Interrupt is per cpu
  * IRQD_HANDLE_ENFORCE_IRQCTX	- Enforce that handle_irq_*() is only invoked
  *				  from actual interrupt context.
- * IRQD_AFFINITY_ON_ACTIVATE	- Affinity is set on activation. Don't call
  *				  irq_chip::irq_set_affinity() when deactivated.
- * IRQD_IRQ_ENABLED_ON_SUSPEND	- Interrupt is enabled on suspend by irq pm if
- *				  irqchip have flag IRQCHIP_ENABLE_WAKEUP_ON_SUSPEND set.
+ *				  from suspend
+ *
+ * IRQD_IRQ_INPROGRESS		- In progress state of the interrupt
  * IRQD_RESEND_WHEN_IN_PROGRESS	- Interrupt may fire when already in progress in which
  *				  case it must be resent at the next available opportunity.
+ *
+ * IRQD_WAKEUP_STATE		- Interrupt is configured for wakeup
+ * IRQD_WAKEUP_ARMED		- Wakeup mode armed
+ * IRQD_IRQ_ENABLED_ON_SUSPEND	- Interrupt is enabled on suspend by irq pm if
+ * IRQD_FORWARDED_TO_VCPU	- The interrupt is forwarded to a VCPU
+ *				  mask. Applies only to affinity managed irqs.
+ *
+ * IRQD_DEFAULT_TRIGGER_SET	- Expected trigger already been set
+ * IRQD_CAN_RESERVE		- Can use reservation mode
+ *				  irqchip have flag IRQCHIP_ENABLE_WAKEUP_ON_SUSPEND set.
  */
 enum {
 	IRQD_TRIGGER_MASK		= 0xf,
-	IRQD_SETAFFINITY_PENDING	= BIT(8),
-	IRQD_ACTIVATED			= BIT(9),
-	IRQD_NO_BALANCING		= BIT(10),
-	IRQD_PER_CPU			= BIT(11),
-	IRQD_AFFINITY_SET		= BIT(12),
-	IRQD_LEVEL			= BIT(13),
-	IRQD_WAKEUP_STATE		= BIT(14),
-	IRQD_IRQ_DISABLED		= BIT(16),
-	IRQD_IRQ_MASKED			= BIT(17),
-	IRQD_IRQ_INPROGRESS		= BIT(18),
-	IRQD_WAKEUP_ARMED		= BIT(19),
-	IRQD_FORWARDED_TO_VCPU		= BIT(20),
-	IRQD_AFFINITY_MANAGED		= BIT(21),
-	IRQD_IRQ_STARTED		= BIT(22),
-	IRQD_MANAGED_SHUTDOWN		= BIT(23),
-	IRQD_SINGLE_TARGET		= BIT(24),
+
+	IRQD_LEVEL			= BIT(4),
+
+	IRQD_ACTIVATED			= BIT(5),
+	IRQD_IRQ_STARTED		= BIT(6),
+	IRQD_MANAGED_SHUTDOWN		= BIT(7),
+
+	IRQD_IRQ_DISABLED		= BIT(8),
+	IRQD_IRQ_MASKED			= BIT(9),
+
+	IRQD_AFFINITY_MANAGED		= BIT(11),
+	IRQD_SETAFFINITY_PENDING	= BIT(12),
+	IRQD_AFFINITY_SET		= BIT(13),
+	IRQD_AFFINITY_ON_ACTIVATE	= BIT(14),
+	IRQD_SINGLE_TARGET		= BIT(15),
+
+	IRQD_NO_BALANCING		= BIT(16),
+	IRQD_PER_CPU			= BIT(17),
+	IRQD_HANDLE_ENFORCE_IRQCTX	= BIT(18),
+
+	IRQD_IRQ_INPROGRESS		= BIT(19),
+	IRQD_RESEND_WHEN_IN_PROGRESS    = BIT(20),
+
+	IRQD_WAKEUP_STATE		= BIT(21),
+	IRQD_WAKEUP_ARMED		= BIT(22),
+	IRQD_IRQ_ENABLED_ON_SUSPEND	= BIT(23),
+
+	IRQD_FORWARDED_TO_VCPU		= BIT(24),
+
 	IRQD_DEFAULT_TRIGGER_SET	= BIT(25),
 	IRQD_CAN_RESERVE		= BIT(26),
-	IRQD_HANDLE_ENFORCE_IRQCTX	= BIT(27),
-	IRQD_AFFINITY_ON_ACTIVATE	= BIT(28),
-	IRQD_IRQ_ENABLED_ON_SUSPEND	= BIT(29),
-	IRQD_RESEND_WHEN_IN_PROGRESS    = BIT(30),
 };
 
 #define __irqd_to_state(d) ACCESS_PRIVATE((d)->common, state_use_accessors)
