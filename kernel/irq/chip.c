@@ -308,9 +308,6 @@ int irq_activate_and_startup(struct irq_desc *desc, bool resend)
 
 static void __irq_disable(struct irq_data *data, bool mask);
 
-/* Temporary helper */
-static inline void mask_irq(struct irq_data *irqd) { mask_irq_full(irqd); }
-
 void irq_shutdown(struct irq_desc *desc)
 {
 	struct irq_data *irqd = &desc->irq_data;
@@ -352,14 +349,14 @@ static void __irq_disable(struct irq_data *irqd, bool mask)
 {
 	if (irqd_irq_disabled(irqd)) {
 		if (mask)
-			mask_irq(irqd);
+			mask_irq_full(irqd);
 	} else {
 		irq_state_set_disabled(irqd);
 		if (irqd->chip->irq_disable) {
 			irqd->chip->irq_disable(irqd);
 			irq_state_set_masked_full(irqd);
 		} else if (mask) {
-			mask_irq(irqd);
+			mask_irq_full(irqd);
 		}
 	}
 }
@@ -418,7 +415,7 @@ void mask_irq_full(struct irq_data *irqd)
 	}
 }
 
-static void __maybe_unused mask_irq_partial(struct irq_data *irqd)
+static void mask_irq_partial(struct irq_data *irqd)
 {
 	struct irq_chip *chip = irqd->chip;
 
@@ -439,7 +436,7 @@ static inline void mask_ack_irq(struct irq_data *irqd)
 		irqd->chip->irq_mask_ack(irqd);
 		irq_state_set_masked_full(irqd);
 	} else {
-		mask_irq(irqd);
+		mask_irq_full(irqd);
 		if (irqd->chip->irq_ack)
 			irqd->chip->irq_ack(irqd);
 	}
@@ -685,6 +682,15 @@ static inline void cond_eoi_irq(struct irq_chip *chip, struct irq_data *data)
 		chip->irq_eoi(data);
 }
 
+static inline void cond_mask_irq(struct irq_desc *desc, struct irq_data *irqd)
+{
+	/* The lazy disable_irq() case ? */
+	if (likely(desc->action))
+		mask_irq_partial(irqd);
+	else
+		mask_irq_full(irqd);
+}
+
 /**
  * handle_fasteoi_irq - irq handler for transparent controllers
  * @desc:	the interrupt description structure for this irq
@@ -714,14 +720,14 @@ void handle_fasteoi_irq(struct irq_desc *desc)
 	}
 
 	if (!irq_can_handle_actions(desc)) {
-		mask_irq(irqd);
+		cond_mask_irq(desc, irqd);
 		cond_eoi_irq(chip, irqd);
 		return;
 	}
 
 	kstat_incr_irqs_this_cpu(desc);
 	if (desc->istate & IRQS_ONESHOT)
-		mask_irq(irqd);
+		mask_irq_partial(irqd);
 
 	handle_irq_event(desc);
 
@@ -801,7 +807,7 @@ void handle_edge_irq(struct irq_desc *desc)
 
 	do {
 		if (unlikely(!desc->action)) {
-			mask_irq(irqd);
+			mask_irq_full(irqd);
 			return;
 		}
 
@@ -1133,14 +1139,14 @@ void handle_fasteoi_ack_irq(struct irq_desc *desc)
 	}
 
 	if (unlikely(!irq_can_handle_actions(desc))) {
-		mask_irq(irqd);
+		cond_mask_irq(desc, irqd);
 		cond_eoi_irq(chip, irqd);
 		return;
 	}
 
 	kstat_incr_irqs_this_cpu(desc);
 	if (desc->istate & IRQS_ONESHOT)
-		mask_irq(irqd);
+		mask_irq_partial(irqd);
 
 	chip->irq_ack(irqd);
 
