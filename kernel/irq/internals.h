@@ -95,7 +95,7 @@ extern void irq_disable(struct irq_desc *desc);
 extern void irq_percpu_enable(struct irq_desc *desc, unsigned int cpu);
 extern void irq_percpu_disable(struct irq_desc *desc, unsigned int cpu);
 
-extern void mask_irq(struct irq_data *irqd);
+extern void mask_irq_full(struct irq_data *irqd);
 extern void unmask_irq(struct irq_data *irqd);
 extern void unmask_threaded_irq(struct irq_data *irqd);
 

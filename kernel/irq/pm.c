@@ -107,7 +107,7 @@ static bool suspend_device_irq(struct irq_desc *desc)
 	 * IRQCHIP_MASK_ON_SUSPEND.
 	 */
 	if (chipflags & IRQCHIP_MASK_ON_SUSPEND)
-		mask_irq(irqd);
+		mask_irq_full(irqd);
 	return true;
 }
 

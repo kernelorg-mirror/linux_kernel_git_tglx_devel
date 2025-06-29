@@ -920,7 +920,7 @@ int __irq_set_trigger(struct irq_desc *desc, unsigned long flags)
 
 	if (chip->flags & IRQCHIP_SET_TYPE_MASKED) {
 		if (!irqd_irq_masked(irqd))
-			mask_irq(irqd);
+			mask_irq_full(irqd);
 		if (!irqd_irq_disabled(irqd))
 			unmask = 1;
 	}

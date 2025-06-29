@@ -146,7 +146,12 @@ static __always_inline void irq_state_clr_disabled(struct irq_data *irqd)
 
 static __always_inline void irq_state_clr_masked(struct irq_data *irqd)
 {
-	irqd_clear(irqd, IRQD_IRQ_MASKED_FULL);
+	irqd_clear(irqd, IRQD_IRQ_MASKED_FULL | IRQD_IRQ_MASKED_PARTIAL);
+}
+
+static __always_inline void irq_state_set_masked_partial(struct irq_data *irqd)
+{
+	irqd_set(irqd, IRQD_IRQ_MASKED_PARTIAL);
 }
 
 static __always_inline void irq_state_clr_started(struct irq_data *irqd)
@@ -303,6 +308,9 @@ int irq_activate_and_startup(struct irq_desc *desc, bool resend)
 
 static void __irq_disable(struct irq_data *data, bool mask);
 
+/* Temporary helper */
+static inline void mask_irq(struct irq_data *irqd) { mask_irq_full(irqd); }
+
 void irq_shutdown(struct irq_desc *desc)
 {
 	struct irq_data *irqd = &desc->irq_data;
@@ -399,6 +407,32 @@ void irq_percpu_disable(struct irq_desc *desc, unsigned int cpu)
 	cpumask_clear_cpu(cpu, desc->percpu_enabled);
 }
 
+void mask_irq_full(struct irq_data *irqd)
+{
+	if (irqd_irq_masked_full(irqd))
+		return;
+
+	if (irqd->chip->irq_mask) {
+		irqd->chip->irq_mask(irqd);
+		irq_state_set_masked_full(irqd);
+	}
+}
+
+static void __maybe_unused mask_irq_partial(struct irq_data *irqd)
+{
+	struct irq_chip *chip = irqd->chip;
+
+	if (irqd_irq_masked(irqd))
+		return;
+
+	if (chip->irq_mask_partial) {
+		chip->irq_mask_partial(irqd);
+		irq_state_set_masked_partial(irqd);
+	} else {
+		mask_irq_full(irqd);
+	}
+}
+
 static inline void mask_ack_irq(struct irq_data *irqd)
 {
 	if (irqd->chip->irq_mask_ack) {
@@ -411,25 +445,23 @@ static inline void mask_ack_irq(struct irq_data *irqd)
 	}
 }
 
-void mask_irq(struct irq_data *irqd)
-{
-	if (irqd_irq_masked(irqd))
-		return;
-
-	if (irqd->chip->irq_mask) {
-		irqd->chip->irq_mask(irqd);
-		irq_state_set_masked_full(irqd);
-	}
-}
-
 void unmask_irq(struct irq_data *irqd)
 {
+	struct irq_chip *chip = irqd->chip;
+
 	if (!irqd_irq_masked(irqd))
 		return;
 
-	if (irqd->chip->irq_unmask) {
-		irqd->chip->irq_unmask(irqd);
-		irq_state_clr_masked(irqd);
+	if (irqd_irq_masked_full(irqd)) {
+		if (chip->irq_unmask) {
+			chip->irq_unmask(irqd);
+			irq_state_clr_masked(irqd);
+		}
+	} else {
+		if (chip->irq_unmask_partial) {
+			chip->irq_unmask_partial(irqd);
+			irq_state_clr_masked(irqd);
+		}
 	}
 }
 
