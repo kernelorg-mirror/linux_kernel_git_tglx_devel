@@ -194,7 +194,7 @@ static inline class_irqdesc_lock_t class_irqdesc_lock_constructor(unsigned int i
 
 #define __irqd_to_state(d) ACCESS_PRIVATE((d)->common, state_use_accessors)
 
-static inline unsigned int irqd_get(struct irq_data *d)
+static __always_inline unsigned int irqd_get(struct irq_data *d)
 {
 	return __irqd_to_state(d);
 }
@@ -202,76 +202,76 @@ static inline unsigned int irqd_get(struct irq_data *d)
 /*
  * Manipulation functions for irq_data.state
  */
-static inline void irqd_set_move_pending(struct irq_data *d)
+static __always_inline void irqd_set_move_pending(struct irq_data *d)
 {
 	__irqd_to_state(d) |= IRQD_SETAFFINITY_PENDING;
 }
 
-static inline void irqd_clr_move_pending(struct irq_data *d)
+static __always_inline void irqd_clr_move_pending(struct irq_data *d)
 {
 	__irqd_to_state(d) &= ~IRQD_SETAFFINITY_PENDING;
 }
 
-static inline void irqd_set_managed_shutdown(struct irq_data *d)
+static __always_inline void irqd_set_managed_shutdown(struct irq_data *d)
 {
 	__irqd_to_state(d) |= IRQD_MANAGED_SHUTDOWN;
 }
 
-static inline void irqd_clr_managed_shutdown(struct irq_data *d)
+static __always_inline void irqd_clr_managed_shutdown(struct irq_data *d)
 {
 	__irqd_to_state(d) &= ~IRQD_MANAGED_SHUTDOWN;
 }
 
-static inline void irqd_clear(struct irq_data *d, unsigned int mask)
+static __always_inline void irqd_clear(struct irq_data *d, unsigned int mask)
 {
 	__irqd_to_state(d) &= ~mask;
 }
 
-static inline void irqd_set(struct irq_data *d, unsigned int mask)
+static __always_inline void irqd_set(struct irq_data *d, unsigned int mask)
 {
 	__irqd_to_state(d) |= mask;
 }
 
-static inline bool irqd_has_set(struct irq_data *d, unsigned int mask)
+static __always_inline bool irqd_has_set(struct irq_data *d, unsigned int mask)
 {
 	return __irqd_to_state(d) & mask;
 }
 
-static inline void irq_state_set_disabled(struct irq_desc *desc)
+static __always_inline void irq_state_set_disabled(struct irq_desc *desc)
 {
 	irqd_set(&desc->irq_data, IRQD_IRQ_DISABLED);
 }
 
-static inline void irq_state_set_masked(struct irq_desc *desc)
+static __always_inline void irq_state_set_masked(struct irq_desc *desc)
 {
 	irqd_set(&desc->irq_data, IRQD_IRQ_MASKED);
 }
 
 #undef __irqd_to_state
 
-static inline void __kstat_incr_irqs_this_cpu(struct irq_desc *desc)
+static __always_inline void __kstat_incr_irqs_this_cpu(struct irq_desc *desc)
 {
 	__this_cpu_inc(desc->kstat_irqs->cnt);
 	__this_cpu_inc(kstat.irqs_sum);
 }
 
-static inline void kstat_incr_irqs_this_cpu(struct irq_desc *desc)
+static __always_inline void kstat_incr_irqs_this_cpu(struct irq_desc *desc)
 {
 	__kstat_incr_irqs_this_cpu(desc);
 	desc->tot_count++;
 }
 
-static inline int irq_desc_get_node(struct irq_desc *desc)
+static __always_inline int irq_desc_get_node(struct irq_desc *desc)
 {
 	return irq_common_data_get_node(&desc->irq_common_data);
 }
 
-static inline int irq_desc_is_chained(struct irq_desc *desc)
+static __always_inline int irq_desc_is_chained(struct irq_desc *desc)
 {
 	return (desc->action && desc->action == &chained_action);
 }
 
-static inline bool irq_is_nmi(struct irq_desc *desc)
+static __always_inline bool irq_is_nmi(struct irq_desc *desc)
 {
 	return desc->istate & IRQS_NMI;
 }
@@ -353,12 +353,12 @@ DECLARE_STATIC_KEY_FALSE(irq_timing_enabled);
  * 48 bit time stamp and 16 bit IRQ number is way sufficient.
  *  Who cares an IRQ after 78 hours of idle time?
  */
-static inline u64 irq_timing_encode(u64 timestamp, int irq)
+static __always_inline u64 irq_timing_encode(u64 timestamp, int irq)
 {
 	return (timestamp << 16) | irq;
 }
 
-static inline int irq_timing_decode(u64 value, u64 *timestamp)
+static __always_inline int irq_timing_decode(u64 value, u64 *timestamp)
 {
 	*timestamp = value >> 16;
 	return value & U16_MAX;
@@ -410,25 +410,25 @@ irq_init_generic_chip(struct irq_chip_generic *gc, const char *name,
 #endif /* CONFIG_GENERIC_IRQ_CHIP */
 
 #ifdef CONFIG_GENERIC_PENDING_IRQ
-static inline bool irq_can_move_pcntxt(struct irq_data *data)
+static __always_inline bool irq_can_move_pcntxt(struct irq_data *data)
 {
 	return !(data->chip->flags & IRQCHIP_MOVE_DEFERRED);
 }
-static inline bool irq_move_pending(struct irq_data *data)
+static __always_inline bool irq_move_pending(struct irq_data *data)
 {
 	return irqd_is_setaffinity_pending(data);
 }
-static inline void
+static __always_inline void
 irq_copy_pending(struct irq_desc *desc, const struct cpumask *mask)
 {
 	cpumask_copy(desc->pending_mask, mask);
 }
-static inline void
+static __always_inline void
 irq_get_pending(struct cpumask *mask, struct irq_desc *desc)
 {
 	cpumask_copy(mask, desc->pending_mask);
 }
-static inline struct cpumask *irq_desc_get_pending_mask(struct irq_desc *desc)
+static __always_inline struct cpumask *irq_desc_get_pending_mask(struct irq_desc *desc)
 {
 	return desc->pending_mask;
 }
@@ -463,18 +463,18 @@ static inline void irq_force_complete_move(struct irq_desc *desc) { }
 #endif /* !CONFIG_GENERIC_PENDING_IRQ */
 
 #if !defined(CONFIG_IRQ_DOMAIN) || !defined(CONFIG_IRQ_DOMAIN_HIERARCHY)
-static inline int irq_domain_activate_irq(struct irq_data *data, bool reserve)
+static __always_inline int irq_domain_activate_irq(struct irq_data *data, bool reserve)
 {
 	irqd_set_activated(data);
 	return 0;
 }
-static inline void irq_domain_deactivate_irq(struct irq_data *data)
+static __always_inline void irq_domain_deactivate_irq(struct irq_data *data)
 {
 	irqd_clr_activated(data);
 }
 #endif
 
-static inline struct irq_data *irqd_get_parent_data(struct irq_data *irqd)
+static __always_inline struct irq_data *irqd_get_parent_data(struct irq_data *irqd)
 {
 #ifdef CONFIG_IRQ_DOMAIN_HIERARCHY
 	return irqd->parent_data;
