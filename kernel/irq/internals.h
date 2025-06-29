@@ -84,7 +84,7 @@ extern void __enable_irq(struct irq_desc *desc);
 #define IRQ_START_FORCE	true
 #define IRQ_START_COND	false
 
-extern int irq_activate(struct irq_desc *desc);
+extern int irq_activate(struct irq_data *irqd);
 extern int irq_activate_and_startup(struct irq_desc *desc, bool resend);
 extern int irq_startup(struct irq_desc *desc, bool resend, bool force);
 extern void irq_startup_managed(struct irq_desc *desc);
@@ -94,9 +94,10 @@ extern void irq_shutdown_and_deactivate(struct irq_desc *desc);
 extern void irq_disable(struct irq_desc *desc);
 extern void irq_percpu_enable(struct irq_desc *desc, unsigned int cpu);
 extern void irq_percpu_disable(struct irq_desc *desc, unsigned int cpu);
-extern void mask_irq(struct irq_desc *desc);
-extern void unmask_irq(struct irq_desc *desc);
-extern void unmask_threaded_irq(struct irq_desc *desc);
+
+extern void mask_irq(struct irq_data *irqd);
+extern void unmask_irq(struct irq_data *irqd);
+extern void unmask_threaded_irq(struct irq_data *irqd);
 
 #ifdef CONFIG_SPARSE_IRQ
 static inline void irq_mark_irq(unsigned int irq) { }

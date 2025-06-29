@@ -903,7 +903,8 @@ bool can_request_irq(unsigned int irq, unsigned long irqflags)
 
 int __irq_set_trigger(struct irq_desc *desc, unsigned long flags)
 {
-	struct irq_chip *chip = desc->irq_data.chip;
+	struct irq_data *irqd = &desc->irq_data;
+	struct irq_chip *chip = irqd->chip;
 	int ret, unmask = 0;
 
 	if (!chip || !chip->irq_set_type) {
@@ -918,31 +919,31 @@ int __irq_set_trigger(struct irq_desc *desc, unsigned long flags)
 	}
 
 	if (chip->flags & IRQCHIP_SET_TYPE_MASKED) {
-		if (!irqd_irq_masked(&desc->irq_data))
-			mask_irq(desc);
-		if (!irqd_irq_disabled(&desc->irq_data))
+		if (!irqd_irq_masked(irqd))
+			mask_irq(irqd);
+		if (!irqd_irq_disabled(irqd))
 			unmask = 1;
 	}
 
 	/* Mask all flags except trigger mode */
 	flags &= IRQ_TYPE_SENSE_MASK;
-	ret = chip->irq_set_type(&desc->irq_data, flags);
+	ret = chip->irq_set_type(irqd, flags);
 
 	switch (ret) {
 	case IRQ_SET_MASK_OK:
 	case IRQ_SET_MASK_OK_DONE:
-		irqd_clear(&desc->irq_data, IRQD_TRIGGER_MASK);
-		irqd_set(&desc->irq_data, flags);
+		irqd_clear(irqd, IRQD_TRIGGER_MASK);
+		irqd_set(irqd, flags);
 		fallthrough;
 
 	case IRQ_SET_MASK_OK_NOCOPY:
-		flags = irqd_get_trigger_type(&desc->irq_data);
+		flags = irqd_get_trigger_type(irqd);
 		irq_settings_set_trigger_mask(desc, flags);
-		irqd_clear(&desc->irq_data, IRQD_LEVEL);
+		irqd_clear(irqd, IRQD_LEVEL);
 		irq_settings_clr_level(desc);
 		if (flags & IRQ_TYPE_LEVEL_MASK) {
 			irq_settings_set_level(desc);
-			irqd_set(&desc->irq_data, IRQD_LEVEL);
+			irqd_set(irqd, IRQD_LEVEL);
 		}
 
 		ret = 0;
@@ -952,7 +953,7 @@ int __irq_set_trigger(struct irq_desc *desc, unsigned long flags)
 		       flags, irq_desc_get_irq(desc), chip->irq_set_type);
 	}
 	if (unmask)
-		unmask_irq(desc);
+		unmask_irq(irqd);
 	return ret;
 }
 
@@ -1074,6 +1075,8 @@ static int irq_wait_for_interrupt(struct irq_desc *desc,
 static void irq_finalize_oneshot(struct irq_desc *desc,
 				 struct irqaction *action)
 {
+	struct irq_data *irqd = &desc->irq_data;
+
 	if (!(desc->istate & IRQS_ONESHOT) ||
 	    action->handler == irq_forced_secondary_handler)
 		return;
@@ -1095,7 +1098,7 @@ again:
 	 * irq_wake_thread(). See the comment there which explains the
 	 * serialization.
 	 */
-	if (unlikely(irqd_irq_inprogress(&desc->irq_data))) {
+	if (unlikely(irqd_irq_inprogress(irqd))) {
 		raw_spin_unlock_irq(&desc->lock);
 		chip_bus_sync_unlock(desc);
 		cpu_relax();
@@ -1112,9 +1115,8 @@ again:
 
 	desc->threads_oneshot &= ~action->thread_mask;
 
-	if (!desc->threads_oneshot && !irqd_irq_disabled(&desc->irq_data) &&
-	    irqd_irq_masked(&desc->irq_data))
-		unmask_threaded_irq(desc);
+	if (!desc->threads_oneshot && !irqd_irq_disabled(irqd) && irqd_irq_masked(irqd))
+		unmask_threaded_irq(irqd);
 
 out_unlock:
 	raw_spin_unlock_irq(&desc->lock);
@@ -1681,7 +1683,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 		 * fails. Interrupts which are in managed shutdown mode
 		 * will simply ignore that activation request.
 		 */
-		ret = irq_activate(desc);
+		ret = irq_activate(&desc->irq_data);
 		if (ret)
 			goto out_unlock;
 
