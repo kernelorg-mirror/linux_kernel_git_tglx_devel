@@ -146,7 +146,7 @@ static __always_inline void irq_state_clr_disabled(struct irq_data *irqd)
 
 static __always_inline void irq_state_clr_masked(struct irq_data *irqd)
 {
-	irqd_clear(irqd, IRQD_IRQ_MASKED);
+	irqd_clear(irqd, IRQD_IRQ_MASKED_FULL);
 }
 
 static __always_inline void irq_state_clr_started(struct irq_data *irqd)
@@ -319,7 +319,7 @@ void irq_shutdown(struct irq_desc *desc)
 		if (irqd->chip->irq_shutdown) {
 			irqd->chip->irq_shutdown(irqd);
 			irq_state_set_disabled(irqd);
-			irq_state_set_masked(irqd);
+			irq_state_set_masked_full(irqd);
 		} else {
 			__irq_disable(irqd, true);
 		}
@@ -349,7 +349,7 @@ static void __irq_disable(struct irq_data *irqd, bool mask)
 		irq_state_set_disabled(irqd);
 		if (irqd->chip->irq_disable) {
 			irqd->chip->irq_disable(irqd);
-			irq_state_set_masked(irqd);
+			irq_state_set_masked_full(irqd);
 		} else if (mask) {
 			mask_irq(irqd);
 		}
@@ -403,7 +403,7 @@ static inline void mask_ack_irq(struct irq_data *irqd)
 {
 	if (irqd->chip->irq_mask_ack) {
 		irqd->chip->irq_mask_ack(irqd);
-		irq_state_set_masked(irqd);
+		irq_state_set_masked_full(irqd);
 	} else {
 		mask_irq(irqd);
 		if (irqd->chip->irq_ack)
@@ -418,7 +418,7 @@ void mask_irq(struct irq_data *irqd)
 
 	if (irqd->chip->irq_mask) {
 		irqd->chip->irq_mask(irqd);
-		irq_state_set_masked(irqd);
+		irq_state_set_masked_full(irqd);
 	}
 }
 

@@ -198,7 +198,7 @@ struct irq_data {
  * IRQD_MANAGED_SHUTDOWN	- Interrupt was shutdown due to empty affinity
  *
  * IRQD_IRQ_DISABLED		- Disabled state of the interrupt
- * IRQD_IRQ_MASKED		- Masked state of the interrupt
+ * IRQD_IRQ_MASKED_FULL		- Fully masked state of the interrupt
  *
  * IRQD_AFFINITY_MANAGED	- Affinity is auto-managed by the kernel
  * IRQD_SETAFFINITY_PENDING	- Affinity setting is pending
@@ -237,7 +237,7 @@ enum {
 	IRQD_MANAGED_SHUTDOWN		= BIT(7),
 
 	IRQD_IRQ_DISABLED		= BIT(8),
-	IRQD_IRQ_MASKED			= BIT(9),
+	IRQD_IRQ_MASKED_FULL		= BIT(9),
 
 	IRQD_AFFINITY_MANAGED		= BIT(11),
 	IRQD_SETAFFINITY_PENDING	= BIT(12),
@@ -356,7 +356,12 @@ static inline bool irqd_irq_disabled(struct irq_data *d)
 
 static inline bool irqd_irq_masked(struct irq_data *d)
 {
-	return __irqd_to_state(d) & IRQD_IRQ_MASKED;
+	return __irqd_to_state(d) & IRQD_IRQ_MASKED_FULL;
+}
+
+static inline bool irqd_irq_masked_full(struct irq_data *d)
+{
+	return __irqd_to_state(d) & IRQD_IRQ_MASKED_FULL;
 }
 
 static inline bool irqd_irq_inprogress(struct irq_data *d)

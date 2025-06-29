@@ -243,9 +243,9 @@ static __always_inline void irq_state_set_disabled(struct irq_data *irqd)
 	irqd_set(irqd, IRQD_IRQ_DISABLED);
 }
 
-static __always_inline void irq_state_set_masked(struct irq_data *irqd)
+static __always_inline void irq_state_set_masked_full(struct irq_data *irqd)
 {
-	irqd_set(irqd, IRQD_IRQ_MASKED);
+	irqd_set(irqd, IRQD_IRQ_MASKED_FULL);
 }
 
 #undef __irqd_to_state
