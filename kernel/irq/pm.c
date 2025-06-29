@@ -170,8 +170,8 @@ static void resume_irq(struct irq_desc *desc)
 
 	/* Pretend that it got disabled ! */
 	desc->depth++;
-	irq_state_set_disabled(desc);
-	irq_state_set_masked(desc);
+	irq_state_set_disabled(irqd);
+	irq_state_set_masked(irqd);
 resume:
 	desc->istate &= ~IRQS_SUSPENDED;
 	__enable_irq(desc);
