@@ -199,6 +199,7 @@ struct irq_data {
  *
  * IRQD_IRQ_DISABLED		- Disabled state of the interrupt
  * IRQD_IRQ_MASKED_FULL		- Fully masked state of the interrupt
+ * IRQD_IRQ_MASKED_PARTIAL	- Partially masked state of the interrupt.
  *
  * IRQD_AFFINITY_MANAGED	- Affinity is auto-managed by the kernel
  * IRQD_SETAFFINITY_PENDING	- Affinity setting is pending
@@ -238,6 +239,7 @@ enum {
 
 	IRQD_IRQ_DISABLED		= BIT(8),
 	IRQD_IRQ_MASKED_FULL		= BIT(9),
+	IRQD_IRQ_MASKED_PARTIAL		= BIT(10),
 
 	IRQD_AFFINITY_MANAGED		= BIT(11),
 	IRQD_SETAFFINITY_PENDING	= BIT(12),
@@ -354,14 +356,19 @@ static inline bool irqd_irq_disabled(struct irq_data *d)
 	return __irqd_to_state(d) & IRQD_IRQ_DISABLED;
 }
 
-static inline bool irqd_irq_masked(struct irq_data *d)
+static inline bool irqd_irq_masked_full(struct irq_data *d)
 {
 	return __irqd_to_state(d) & IRQD_IRQ_MASKED_FULL;
 }
 
-static inline bool irqd_irq_masked_full(struct irq_data *d)
+static inline bool irqd_irq_masked_partial(struct irq_data *d)
 {
-	return __irqd_to_state(d) & IRQD_IRQ_MASKED_FULL;
+	return __irqd_to_state(d) & IRQD_IRQ_MASKED_PARTIAL;
+}
+
+static inline bool irqd_irq_masked(struct irq_data *d)
+{
+	return __irqd_to_state(d) & (IRQD_IRQ_MASKED_FULL | IRQD_IRQ_MASKED_PARTIAL);
 }
 
 static inline bool irqd_irq_inprogress(struct irq_data *d)
@@ -467,8 +474,10 @@ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
  * @flags:			chip specific flags
  * @irq_ack:			start of a new interrupt
  * @irq_mask:			mask a interrupt source
+ * @irq_mask_partial:		Optional: partially mask a interrupt source
  * @irq_mask_ack:		ack and mask a interrupt source
  * @irq_unmask:			unmask a interrupt source
+ * @irq_unmask_partial:		Optional: unmask a partially masked interrupt source
  * @irq_eoi:			end of interrupt
  *
  * @ipi_send_single:		send a single IPI to destination cpus
@@ -519,10 +528,13 @@ struct irq_chip {
 
 	void		(*irq_ack)(struct irq_data *data);
 	void		(*irq_mask)(struct irq_data *data);
+	void		(*irq_mask_partial)(struct irq_data *data);
 	void		(*irq_mask_ack)(struct irq_data *data);
 	void		(*irq_unmask)(struct irq_data *data);
+	void		(*irq_unmask_partial)(struct irq_data *data);
 	void		(*irq_eoi)(struct irq_data *data);
 
+	/* Second cache line starts here */
 	void		(*ipi_send_single)(struct irq_data *data, unsigned int cpu);
 	void		(*ipi_send_mask)(struct irq_data *data, const struct cpumask *dest);
 
