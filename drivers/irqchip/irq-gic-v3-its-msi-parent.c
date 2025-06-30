@@ -16,7 +16,8 @@
 
 #define ITS_MSI_FLAGS_SUPPORTED (MSI_GENERIC_FLAGS_MASK |	\
 				 MSI_FLAG_PCI_MSIX      |	\
-				 MSI_FLAG_MULTI_PCI_MSI)
+				 MSI_FLAG_MULTI_PCI_MSI |	\
+				 MSI_FLAG_MSI_MASK_PARTIAL)
 
 #ifdef CONFIG_PCI_MSI
 static int its_pci_msi_vec_count(struct pci_dev *pdev, void *data)
