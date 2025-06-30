@@ -189,7 +189,8 @@ static void pci_irq_unmask_msi(struct irq_data *data)
 #define MSI_COMMON_FLAGS	(MSI_FLAG_FREE_MSI_DESCS |	\
 				 MSI_FLAG_ACTIVATE_EARLY |	\
 				 MSI_FLAG_DEV_SYSFS |		\
-				 MSI_REACTIVATE)
+				 MSI_REACTIVATE |		\
+				 MSI_FLAG_MSI_MASK_PARTIAL)
 
 static const struct msi_domain_template pci_msi_template = {
 	.chip = {
