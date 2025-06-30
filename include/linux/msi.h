@@ -566,6 +566,8 @@ enum {
 	MSI_FLAG_PARENT_PM_DEV		= (1 << 8),
 	/* Support for parent mask/unmask */
 	MSI_FLAG_PCI_MSI_MASK_PARENT	= (1 << 9),
+	/* Support for partial mask/unmask */
+	MSI_FLAG_MSI_MASK_PARTIAL	= (1 << 10),
 
 	/* Mask for the generic functionality */
 	MSI_GENERIC_FLAGS_MASK		= GENMASK(15, 0),

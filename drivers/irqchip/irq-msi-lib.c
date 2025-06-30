@@ -99,6 +99,15 @@ bool msi_lib_init_dev_msi_info(struct device *dev, struct irq_domain *domain,
 		chip->irq_ack = irq_chip_ack_parent;
 
 	/*
+	 * If device requests and parent supports partial masking during
+	 * runtime, set the partial mask/unmask callbacks.
+	 */
+	if (info->flags & MSI_FLAG_MSI_MASK_PARTIAL) {
+		chip->irq_mask_partial = irq_chip_mask_parent;
+		chip->irq_unmask_partial = irq_chip_unmask_parent;
+	}
+
+	/*
 	 * The device MSI domain can never have a set affinity callback. It
 	 * always has to rely on the parent domain to handle affinity
 	 * settings. The device MSI domain just has to write the resulting
