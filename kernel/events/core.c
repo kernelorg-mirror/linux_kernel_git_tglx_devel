@@ -6970,12 +6970,79 @@ static void perf_mmap_account(struct vm_area_struct *vma, long user_extra, long 
 	atomic64_add(extra, &vma->vm_mm->pinned_vm);
 }
 
+static int perf_mmap_aux(struct vm_area_struct *vma, struct perf_event *event,
+			 unsigned long nr_pages)
+{
+	long user_extra = nr_pages, extra = 0;
+	struct perf_buffer *rb = event->rb;
+	u64 aux_offset, aux_size;
+	int ret, rb_flags = 0;
+
+	/*
+	 * AUX area mapping: if rb->aux_nr_pages != 0, it's already
+	 * mapped, all subsequent mappings should have the same size
+	 * and offset. Must be above the normal perf buffer.
+	 */
+	aux_offset = READ_ONCE(rb->user_page->aux_offset);
+	aux_size = READ_ONCE(rb->user_page->aux_size);
+
+	if (aux_offset < perf_data_size(rb) + PAGE_SIZE)
+		return -EINVAL;
+
+	if (aux_offset != vma->vm_pgoff << PAGE_SHIFT)
+		return -EINVAL;
+
+	/* Already mapped with a different offset */
+	if (rb_has_aux(rb) && rb->aux_pgoff != vma->vm_pgoff)
+		return -EINVAL;
+
+	if (aux_size != nr_pages * PAGE_SIZE)
+		return -EINVAL;
+
+	/* Already mapped with a different size */
+	if (rb_has_aux(rb) && rb->aux_nr_pages != nr_pages)
+		return -EINVAL;
+
+	if (!is_power_of_2(nr_pages))
+		return -EINVAL;
+
+	/* If this succeeds, subsequent failures have to undo it */
+	if (!atomic_inc_not_zero(&rb->mmap_count))
+		return -EINVAL;
+
+	/* If mapped, attach to it */
+	if (rb_has_aux(rb)) {
+		atomic_inc(&rb->aux_mmap_count);
+		return 0;
+	}
+
+	if (!perf_mmap_calc_limits(vma, &user_extra, &extra)) {
+		atomic_dec(&rb->mmap_count);
+		return -EPERM;
+	}
+
+	if (vma->vm_flags & VM_WRITE)
+		rb_flags |= RING_BUFFER_WRITABLE;
+
+	ret = rb_alloc_aux(rb, event, vma->vm_pgoff, nr_pages,
+			   event->attr.aux_watermark, rb_flags);
+	if (ret) {
+		atomic_dec(&rb->mmap_count);
+		return ret;
+	}
+
+	atomic_set(&rb->aux_mmap_count, 1);
+	rb->aux_mmap_locked = extra;
+	perf_mmap_account(vma, user_extra, extra);
+	atomic_inc(&event->mmap_count);
+	return 0;
+}
+
 static int perf_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct perf_event *event = file->private_data;
 	unsigned long vma_size, nr_pages;
 	long user_extra = 0, extra = 0;
-	struct mutex *aux_mutex = NULL;
 	struct perf_buffer *rb = NULL;
 	int ret, flags = 0;
 	mapped_f mapped;
@@ -7055,51 +7122,15 @@ static int perf_mmap(struct file *file, struct vm_area_struct *vma)
 		}
 
 	} else {
-		/*
-		 * AUX area mapping: if rb->aux_nr_pages != 0, it's already
-		 * mapped, all subsequent mappings should have the same size
-		 * and offset. Must be above the normal perf buffer.
-		 */
-		u64 aux_offset, aux_size;
-
-		rb = event->rb;
-		if (!rb)
-			goto aux_unlock;
-
-		aux_mutex = &rb->aux_mutex;
-		mutex_lock(aux_mutex);
-
-		aux_offset = READ_ONCE(rb->user_page->aux_offset);
-		aux_size = READ_ONCE(rb->user_page->aux_size);
-
-		if (aux_offset < perf_data_size(rb) + PAGE_SIZE)
-			goto aux_unlock;
-
-		if (aux_offset != vma->vm_pgoff << PAGE_SHIFT)
-			goto aux_unlock;
-
-		/* already mapped with a different offset */
-		if (rb_has_aux(rb) && rb->aux_pgoff != vma->vm_pgoff)
-			goto aux_unlock;
-
-		if (aux_size != nr_pages * PAGE_SIZE)
-			goto aux_unlock;
-
-		/* already mapped with a different size */
-		if (rb_has_aux(rb) && rb->aux_nr_pages != nr_pages)
-			goto aux_unlock;
-
-		if (!is_power_of_2(nr_pages))
-			goto aux_unlock;
-
-		if (!atomic_inc_not_zero(&rb->mmap_count))
-			goto aux_unlock;
-
-		if (rb_has_aux(rb)) {
-			atomic_inc(&rb->aux_mmap_count);
-			ret = 0;
-			goto unlock;
+		if (!event->rb) {
+			ret = -EINVAL;
+		} else {
+			scoped_guard(mutex, &event->rb->aux_mutex)
+				ret = perf_mmap_aux(vma, event, nr_pages);
 		}
+		// Temporary workaround to split out AUX handling first
+		mutex_unlock(&event->mmap_mutex);
+		goto out;
 	}
 
 	if (!perf_mmap_calc_limits(vma, &user_extra, &extra)) {
@@ -7132,28 +7163,16 @@ static int perf_mmap(struct file *file, struct vm_area_struct *vma)
 		perf_event_init_userpage(event);
 		perf_event_update_userpage(event);
 		ret = 0;
-	} else {
-		ret = rb_alloc_aux(rb, event, vma->vm_pgoff, nr_pages,
-				   event->attr.aux_watermark, flags);
-		if (!ret) {
-			atomic_set(&rb->aux_mmap_count, 1);
-			rb->aux_mmap_locked = extra;
-		}
 	}
-
 unlock:
 	if (!ret) {
 		perf_mmap_account(vma, user_extra, extra);
 		atomic_inc(&event->mmap_count);
-	} else if (rb) {
-		/* AUX allocation failed */
-		atomic_dec(&rb->mmap_count);
 	}
-aux_unlock:
-	if (aux_mutex)
-		mutex_unlock(aux_mutex);
 	mutex_unlock(&event->mmap_mutex);
 
+// Temporary until RB allocation is split out.
+out:
 	if (ret)
 		return ret;
 
