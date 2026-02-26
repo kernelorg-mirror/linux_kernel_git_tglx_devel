@@ -47,4 +47,6 @@ void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
 #define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
 #endif
 
+void irq_init_stats(void);
+
 #endif /* _ASM_X86_IRQ_H */
