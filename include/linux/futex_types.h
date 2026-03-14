@@ -33,13 +33,26 @@ struct futex_ctrl { };
 
 /**
  * struct futex_mm_data - Futex related per MM data
- * @phash_lock:		Mutex to protect the private hash operations
- * @phash:		RCU managed pointer to the private hash
- * @phash_new:		Pointer to a newly allocated private hash
- * @phash_batches:	Batch state for RCU synchronization
- * @phash_rcu:		RCU head for call_rcu()
- * @phash_atomic:	Aggregate value for @phash_ref
- * @phash_ref:		Per CPU reference counter for a private hash
+ * @phash_lock:			Mutex to protect the private hash operations
+ * @phash:			RCU managed pointer to the private hash
+ * @phash_new:			Pointer to a newly allocated private hash
+ * @phash_batches:		Batch state for RCU synchronization
+ * @phash_rcu:			RCU head for call_rcu()
+ * @phash_atomic:		Aggregate value for @phash_ref
+ * @phash_ref:			Per CPU reference counter for a private hash
+ *
+ * @unlock_cs_start_ip:		The start IP of the robust futex unlock critical section
+ *
+ * @unlock_cs_success_ip:	The IP of the robust futex unlock critical section which
+ *				indicates that the unlock (cmpxchg) was successful
+ *				Required to handle the compat size insanity for mixed mode
+ *				game emulators.
+ *
+ *				Not evaluated by the core code as that only
+ *				evaluates the start/end range. Can therefore be 0 if the
+ *				architecture does not care.
+ *
+ * @unlock_cs_end_ip:		The end IP of the robust futex unlock critical section
  */
 struct futex_mm_data {
 #ifdef CONFIG_FUTEX_PRIVATE_HASH
@@ -50,6 +63,11 @@ struct futex_mm_data {
 	struct rcu_head			phash_rcu;
 	atomic_long_t			phash_atomic;
 	unsigned int			__percpu *phash_ref;
+#endif
+#ifdef CONFIG_FUTEX_ROBUST_UNLOCK
+	unsigned long			unlock_cs_start_ip;
+	unsigned long			unlock_cs_success_ip;
+	unsigned long			unlock_cs_end_ip;
 #endif
 };
 
