@@ -25,7 +25,8 @@
 
 #define FUTEX_PRIVATE_FLAG	128
 #define FUTEX_CLOCK_REALTIME	256
-#define FUTEX_CMD_MASK		~(FUTEX_PRIVATE_FLAG | FUTEX_CLOCK_REALTIME)
+#define FUTEX_UNLOCK_ROBUST	512
+#define FUTEX_CMD_MASK		~(FUTEX_PRIVATE_FLAG | FUTEX_CLOCK_REALTIME | FUTEX_UNLOCK_ROBUST)
 
 #define FUTEX_WAIT_PRIVATE	(FUTEX_WAIT | FUTEX_PRIVATE_FLAG)
 #define FUTEX_WAKE_PRIVATE	(FUTEX_WAKE | FUTEX_PRIVATE_FLAG)
@@ -180,6 +181,23 @@ struct robust_list_head {
 /* Modifiers for robust_list_head::list_op_pending */
 #define FUTEX_ROBUST_MOD_PI		(0x1UL)
 #define FUTEX_ROBUST_MOD_MASK		(FUTEX_ROBUST_MOD_PI)
+
+/*
+ * Modifier for FUTEX_ROBUST_UNLOCK uaddr2. Required to distinguish the storage
+ * size for the robust_list_head::list_pending_op. This solves two problems:
+ *
+ *	1) COMPAT tasks
+ *
+ *	2) The mixed mode magic gaming use case which has both 32-bit and 64-bit
+ *	   robust lists. Oh well....
+ *
+ * Long story short: 32-bit userspace must set this bit unconditionally to
+ * ensure that it can run on a 64-bit kernel in compat mode. If user space
+ * screws that up a 64-bit kernel will happily clear the full 64-bits. 32-bit
+ * kernels return an error code if the bit is not set.
+ */
+#define FUTEX_ROBUST_UNLOCK_MOD_32BIT	(0x1UL)
+#define FUTEX_ROBUST_UNLOCK_MOD_MASK	(FUTEX_ROBUST_UNLOCK_MOD_32BIT)
 
 /*
  * bitset with all bits set for the FUTEX_xxx_BITSET OPs to request a
