@@ -1455,6 +1455,19 @@ bool futex_robust_list_clear_pending(void __user *pop)
 	return robust_list_clear_pending(pop);
 }
 
+#ifdef CONFIG_FUTEX_ROBUST_UNLOCK
+void __futex_fixup_robust_unlock(struct pt_regs *regs)
+{
+	void __user *pop;
+
+	if (!arch_futex_needs_robust_unlock_fixup(regs))
+		return;
+
+	pop = arch_futex_robust_unlock_get_pop(regs);
+	futex_robust_list_clear_pending(pop);
+}
+#endif /* CONFIG_FUTEX_ROBUST_UNLOCK */
+
 static void futex_cleanup(struct task_struct *tsk)
 {
 	if (unlikely(tsk->futex.robust_list)) {
