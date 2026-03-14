@@ -31,4 +31,26 @@ struct futex_ctrl {
 struct futex_ctrl { };
 #endif /* !CONFIG_FUTEX */
 
+/**
+ * struct futex_mm_data - Futex related per MM data
+ * @phash_lock:		Mutex to protect the private hash operations
+ * @phash:		RCU managed pointer to the private hash
+ * @phash_new:		Pointer to a newly allocated private hash
+ * @phash_batches:	Batch state for RCU synchronization
+ * @phash_rcu:		RCU head for call_rcu()
+ * @phash_atomic:	Aggregate value for @phash_ref
+ * @phash_ref:		Per CPU reference counter for a private hash
+ */
+struct futex_mm_data {
+#ifdef CONFIG_FUTEX_PRIVATE_HASH
+	struct mutex			phash_lock;
+	struct futex_private_hash	__rcu *phash;
+	struct futex_private_hash	*phash_new;
+	unsigned long			phash_batches;
+	struct rcu_head			phash_rcu;
+	atomic_long_t			phash_atomic;
+	unsigned int			__percpu *phash_ref;
+#endif
+};
+
 #endif /* _LINUX_FUTEX_TYPES_H */
