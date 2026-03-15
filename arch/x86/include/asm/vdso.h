@@ -25,6 +25,9 @@ struct vdso_image {
 	long sym_int80_landing_pad;
 	long sym_vdso32_sigreturn_landing_pad;
 	long sym_vdso32_rt_sigreturn_landing_pad;
+	long sym___vdso_futex_robust_try_unlock_cs_start;
+	long sym___vdso_futex_robust_try_unlock_cs_success;
+	long sym___vdso_futex_robust_try_unlock_cs_end;
 };
 
 extern const struct vdso_image vdso64_image;
