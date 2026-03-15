@@ -22,6 +22,12 @@ VERSION {
 		__vdso_getcpu;
 		__vdso_time;
 		__vdso_clock_getres;
+#ifdef CONFIG_FUTEX_ROBUST_UNLOCK
+		__vdso_futex_robust_try_unlock;
+		__vdso_futex_robust_try_unlock_cs_start;
+		__vdso_futex_robust_try_unlock_cs_success;
+		__vdso_futex_robust_try_unlock_cs_end;
+#endif
 	local: *;
 	};
 }
