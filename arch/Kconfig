@@ -403,6 +403,10 @@ config ARCH_32BIT_OFF_T
 config ARCH_32BIT_USTAT_F_TINODE
 	bool
 
+# Selected by architectures when plain stores have release semantics
+config ARCH_STORE_IMPLIES_RELEASE
+	bool
+
 config HAVE_ASM_MODVERSIONS
 	bool
 	help
