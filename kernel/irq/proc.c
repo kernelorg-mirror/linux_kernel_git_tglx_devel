@@ -13,6 +13,8 @@
 #include <linux/kernel_stat.h>
 #include <linux/mutex.h>
 #include <linux/string.h>
+#include <linux/uio.h>
+#include <uapi/linux/irqstats.h>
 
 #include "internals.h"
 
@@ -636,9 +638,321 @@ static const struct seq_operations irq_seq_ops = {
 	.show  = irq_seq_show,
 };
 
+/*
+ * /proc/irq/stats related code
+ *
+ * /proc/irq/stats provides variable record sized statistics for device
+ * interrupts.
+ */
+struct irq_proc_stat {
+	unsigned int			irqnr;
+	bool				percpu;
+	bool				first;
+	size_t				from;
+	size_t				count;
+	loff_t				read_pos;
+	struct irq_desc			*desc;
+	struct irq_proc_stat_data	*data;
+};
+
+static inline bool irq_stat_valid_irq(struct irq_proc_stat *s)
+{
+	struct irq_desc *desc = s->desc;
+
+	/* Check for general validity */
+	if (!irq_settings_proc_valid(desc))
+		return false;
+
+	if (!s->percpu) {
+		/*
+		 * Device interrupts update desc::tot_count. Per CPU
+		 * interrupts are not touching that fields due to the
+		 * obvious concurrency issues.  For device interrupts it's
+		 * therefore sufficient to evaluate desc::tot_count.
+		 */
+		if (!data_race(desc->tot_count))
+			return false;
+	} else {
+		/*
+		 * Per CPU interrupts are marked accordingly in the
+		 * settings.
+		 */
+		if (!irq_settings_is_per_cpu(desc) && !irq_settings_is_per_cpu_devid(desc))
+			return false;
+	}
+
+	/* Try to get a reference to prevent freeing before it's evaluated */
+	return irq_desc_get_ref(desc);
+}
+
+static inline bool irq_stat_find_irq(struct irq_proc_stat *s)
+{
+	/* Loop until a valid interrupt is found */
+	guard(rcu)();
+	for (;; s->irqnr++) {
+		s->desc = irq_find_desc_at_or_after(s->irqnr);
+		/* NULL means there is no interrupt anymore in the maple tree */
+		if (!s->desc) {
+			s->irqnr = total_nr_irqs;
+			return false;
+		}
+
+		/* Save the interrupt number for the next search */
+		s->irqnr = irq_desc_get_irq(s->desc);
+
+		if (irq_stat_valid_irq(s))
+			return true;
+	}
+}
+
+static inline void irq_stat_next_irq(struct irq_proc_stat *s)
+{
+	s->irqnr++;
+	irq_stat_find_irq(s);
+}
+
+static void irq_dev_stat_update_one(struct irq_proc_stat *s)
+{
+	struct irq_proc_stat_data *d = s->data;
+	struct irq_desc *desc = s->desc;
+	struct irq_data *irqd;
+	unsigned int cpu;
+
+	/*
+	 * Optimize for single CPU target affinities. Otherwise walk the
+	 * effective affinity mask, which falls back to the real affinity
+	 * mask if the architecture does not support effective affinity
+	 * masks. Bad luck...
+	 */
+	irqd = irq_desc_get_irq_data(desc);
+	cpu = irq_data_get_single_target(irqd);
+	if (cpu < nr_cpu_ids) {
+		struct irq_proc_stat_cpu pcpu = {
+			.cpu = cpu,
+			.cnt = data_race(per_cpu(desc->kstat_irqs->cnt, cpu)),
+		};
+
+		if (pcpu.cnt)
+			d->pcpu[d->entries++] = pcpu;
+	} else {
+		const struct cpumask *m = irq_data_get_effective_affinity_mask(irqd);
+
+		for_each_cpu(cpu, m) {
+			struct irq_proc_stat_cpu pcpu = {
+				.cpu = cpu,
+				.cnt = data_race(per_cpu(desc->kstat_irqs->cnt, cpu)),
+			};
+
+			if (pcpu.cnt)
+				d->pcpu[d->entries++] = pcpu;
+		}
+	}
+}
+
+static void irq_percpu_stat_update_one(struct irq_proc_stat *s)
+{
+	struct irq_proc_stat_data *d = s->data;
+	struct irq_desc *desc = s->desc;
+	unsigned int cpu;
+
+	for_each_online_cpu(cpu) {
+		struct irq_proc_stat_cpu pcpu = {
+			.cpu = cpu,
+			.cnt = data_race(per_cpu(desc->kstat_irqs->cnt, cpu)),
+		};
+
+		if (pcpu.cnt)
+			d->pcpu[d->entries++] = pcpu;
+	}
+}
+
+static bool irq_stat_update_one(struct irq_proc_stat *s)
+{
+	struct irq_proc_stat_data *d = s->data;
+
+	if (IS_ENABLED(CONFIG_GENERIC_IRQ_PERCPU_STATS) && s->percpu)
+		irq_percpu_stat_update_one(s);
+	else
+		irq_dev_stat_update_one(s);
+
+	/* Only output data if there is an actual count */
+	if (d->entries) {
+		d->irqnr = s->irqnr;
+		s->count = sizeof(*d) + d->entries * sizeof(*d->pcpu);
+	}
+
+	/* Drop the reference count which got acquired in irq_stat_find_irq() */
+	irq_desc_put_ref(s->desc);
+	s->desc = NULL;
+	return !!s->count;
+}
+
+static __always_inline bool irq_stat_next_data(struct irq_proc_stat *s)
+{
+	/*
+	 * On the first read or after a lseek(fd, 0, SEEK_SET) find the
+	 * first interrupt. Otherwise find the next one.
+	 */
+	if (unlikely(s->first)) {
+		s->irqnr = 0;
+		s->first = false;
+		irq_stat_find_irq(s);
+	} else {
+		irq_stat_next_irq(s);
+	}
+
+	/* Repeat until an interrupt with non-zero counts is found */
+	for (; s->desc; irq_stat_next_irq(s)) {
+		if (irq_stat_update_one(s))
+			return true;
+	}
+	return false;
+}
+
+static size_t irq_stat_copy_to_iter(struct irq_proc_stat *s, struct iov_iter *iter)
+{
+	size_t n = copy_to_iter(((char *)s->data) + s->from, s->count, iter);
+
+	s->count -= n;
+	s->from += n;
+	return n;
+}
+
+/* Force inline as otherwise next() becomes a indirect call */
+static __always_inline ssize_t __irq_stats_read(struct kiocb *iocb, struct iov_iter *iter,
+						bool (*next)(struct irq_proc_stat *))
+{
+	struct irq_proc_stat *s = iocb->ki_filp->private_data;
+	size_t copied = 0;
+
+	/* Real seek is not supported. See irq_stat_lseek() */
+	if (WARN_ON_ONCE(iocb->ki_pos != s->read_pos))
+		goto done;
+
+	if (s->count)
+		copied += irq_stat_copy_to_iter(s, iter);
+
+	for (; !s->count;) {
+		s->count = s->from = 0;
+		s->data->entries = 0;
+
+		if (!next(s))
+			goto done;
+		copied += irq_stat_copy_to_iter(s, iter);
+	}
+
+	if (!copied)
+		return -EFAULT;
+done:
+	iocb->ki_pos += copied;
+	s->read_pos += copied;
+	return copied;
+}
+
+static ssize_t irq_stats_read(struct kiocb *iocb, struct iov_iter *iter)
+{
+	return __irq_stats_read(iocb, iter, irq_stat_next_data);
+}
+
+static loff_t irq_stats_llseek(struct file *filp, loff_t offset, int whence)
+{
+	struct irq_proc_stat *s = filp->private_data;
+	loff_t ret;
+
+	/*
+	 * As this is a variable record interface and the actual use case is to
+	 * get a full snapshot of the active interrupts, there is no point in
+	 * trying to be fully seekable. Just support rewind to the beginning of
+	 * the data set. For all other operations return the current position
+	 * which makes e.g. python happy.
+	 */
+	if (whence != SEEK_SET || offset)
+		return noop_llseek(filp, offset, whence);
+
+	ret = default_llseek(filp, 0, SEEK_SET);
+	if (ret < 0)
+		return ret;
+
+	/* Reset the position, drop any leftovers and indicate to start over */
+	s->read_pos = 0;
+	s->count = 0;
+	s->first = true;
+	return 0;
+}
+
+static int __irq_stats_open(struct inode *inode, struct file *filp, bool percpu)
+{
+	struct irq_proc_stat *s = kzalloc_obj(*s);
+
+	if (!s)
+		return -ENOMEM;
+
+	s->data	= kzalloc_flex(*s->data, pcpu, num_possible_cpus());
+	if (!s->data) {
+		kfree(s);
+		return -ENOMEM;
+	}
+
+	s->first = true;
+	s->percpu = percpu;
+	filp->private_data = s;
+	return 0;
+}
+
+static int irq_stats_open(struct inode *inode, struct file *filp)
+{
+	return __irq_stats_open(inode, filp, false);
+}
+
+static int irq_stats_release(struct inode *inode, struct file *filp)
+{
+	struct irq_proc_stat *s = filp->private_data;
+
+	if (s) {
+		kfree(s->data);
+		kfree(s);
+	}
+	return 0;
+}
+
+static const struct proc_ops irq_dev_stat_ops = {
+	.proc_flags	= PROC_ENTRY_PERMANENT,
+	.proc_open	= irq_stats_open,
+	.proc_release	= irq_stats_release,
+	.proc_read_iter	= irq_stats_read,
+	.proc_lseek	= irq_stats_llseek,
+};
+
+#ifdef CONFIG_GENERIC_IRQ_STATS_PERCPU
+static int irq_pcp_stats_open(struct inode *inode, struct file *filp)
+{
+	return __irq_stats_open(inode, filp, true);
+}
+
+static const struct proc_ops irq_pcp_stat_ops = {
+	.proc_flags	= PROC_ENTRY_PERMANENT,
+	.proc_open	= irq_pcp_stats_open,
+	.proc_release	= irq_stats_release,
+	.proc_read_iter	= irq_stats_read,
+	.proc_lseek	= irq_stats_llseek,
+};
+
+static __init void irq_pcp_stats_init(void)
+{
+	proc_create("percpu_stats", 0, root_irq_dir, &irq_pcp_stat_ops);
+}
+#else  /* CONFIG_GENERIC_IRQ_STATS_PERCPU */
+static inline void irq_pcp_stats_init(void) { }
+#endif /* !CONFIG_GENERIC_IRQ_STATS_PERCPU */
+
 static int __init irq_proc_init(void)
 {
 	proc_create_seq("interrupts", 0, NULL, &irq_seq_ops);
+	if (!root_irq_dir)
+		return 0;
+
+	proc_create("device_stats", 0, root_irq_dir, &irq_dev_stat_ops);
+	irq_pcp_stats_init();
 	return 0;
 }
 fs_initcall(irq_proc_init);
