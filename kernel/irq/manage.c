@@ -1802,6 +1802,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
 		__enable_irq(desc);
 	}
 
+	irq_proc_update_valid(desc);
 	raw_spin_unlock_irqrestore(&desc->lock, flags);
 	chip_bus_sync_unlock(desc);
 	mutex_unlock(&desc->request_mutex);
@@ -1906,6 +1907,7 @@ static struct irqaction *__free_irq(struct irq_desc *desc, void *dev_id)
 		desc->affinity_hint = NULL;
 #endif
 
+	irq_proc_update_valid(desc);
 	raw_spin_unlock_irqrestore(&desc->lock, flags);
 	/*
 	 * Drop bus_lock here so the changes which were done in the chip
