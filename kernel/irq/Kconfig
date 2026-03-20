@@ -18,6 +18,9 @@ config GENERIC_IRQ_SHOW
 config GENERIC_IRQ_SHOW_LEVEL
        bool
 
+config GENERIC_IRQ_STATS_ARCH
+       bool
+
 config GENERIC_IRQ_STATS_PERCPU
        bool
 

@@ -945,6 +945,61 @@ static __init void irq_pcp_stats_init(void)
 static inline void irq_pcp_stats_init(void) { }
 #endif /* !CONFIG_GENERIC_IRQ_STATS_PERCPU */
 
+#ifdef CONFIG_GENERIC_IRQ_STATS_ARCH
+static inline void arch_stat_update_one(struct irq_proc_stat *s)
+{
+	struct irq_proc_stat_data *d = s->data;
+	unsigned int cpu, idx = s->irqnr;
+
+	for_each_online_cpu(cpu) {
+		struct irq_proc_stat_cpu pcpu = {
+			.cpu = cpu,
+			.cnt = arch_get_irq_stat(cpu, idx),
+		};
+
+		if (pcpu.cnt)
+			d->pcpu[d->entries++] = pcpu;
+	}
+
+	if (d->entries) {
+		d->irqnr = idx;
+		s->count = sizeof(*d) + d->entries * sizeof(*d->pcpu);
+	}
+}
+
+static __always_inline bool arch_stat_next_data(struct irq_proc_stat *s)
+{
+	if (unlikely(s->first)) {
+		s->irqnr = 0;
+		s->first = false;
+	}
+
+	for(; !s->count && s->irqnr < ARCH_IRQ_STATS_NUM_IRQS; s->irqnr++)
+		arch_stat_update_one(s);
+	return !!s->count;
+}
+
+static ssize_t irq_arch_stats_read(struct kiocb *iocb, struct iov_iter *iter)
+{
+	return __irq_stats_read(iocb, iter, arch_stat_next_data);
+}
+
+static const struct proc_ops irq_arch_stat_ops = {
+	.proc_flags	= PROC_ENTRY_PERMANENT,
+	.proc_open	= irq_stats_open,
+	.proc_release	= irq_stats_release,
+	.proc_read_iter	= irq_arch_stats_read,
+	.proc_lseek	= irq_stats_llseek,
+};
+
+static __init void irq_arch_stats_init(void)
+{
+	proc_create("arch_stats", 0, root_irq_dir, &irq_arch_stat_ops);
+}
+#else  /* CONFIG_GENERIC_IRQ_STATS_ARCH */
+static inline void irq_arch_stats_init(void) { }
+#endif /* !CONFIG_GENERIC_IRQ_STATS_ARCH */
+
 static int __init irq_proc_init(void)
 {
 	proc_create_seq("interrupts", 0, NULL, &irq_seq_ops);
@@ -953,6 +1008,7 @@ static int __init irq_proc_init(void)
 
 	proc_create("device_stats", 0, root_irq_dir, &irq_dev_stat_ops);
 	irq_pcp_stats_init();
+	irq_arch_stats_init();
 	return 0;
 }
 fs_initcall(irq_proc_init);
