@@ -140,6 +140,8 @@ struct irq_domain;
  * @effective_affinity:	The effective IRQ affinity on SMP as some irq
  *			chips do not allow multi CPU destinations.
  *			A subset of @affinity.
+ * @target_cpu:		The target CPU when @effective_affinity contains
+ *			only a single CPU, IRQ_TARGET_MULTI_CPU otherwise
  * @msi_desc:		MSI descriptor
  * @ipi_offset:		Offset of first IPI target cpu in @affinity. Optional.
  */
@@ -155,6 +157,7 @@ struct irq_common_data {
 #endif
 #ifdef CONFIG_GENERIC_IRQ_EFFECTIVE_AFF_MASK
 	cpumask_var_t		effective_affinity;
+	unsigned int		target_cpu;
 #endif
 #ifdef CONFIG_GENERIC_IRQ_IPI
 	unsigned int		ipi_offset;
@@ -903,6 +906,8 @@ static inline const struct cpumask *irq_get_affinity_mask(int irq)
 	return d ? irq_data_get_affinity_mask(d) : NULL;
 }
 
+#define IRQ_TARGET_MULTI_CPU	UINT_MAX
+
 #ifdef CONFIG_GENERIC_IRQ_EFFECTIVE_AFF_MASK
 static inline
 const struct cpumask *irq_data_get_effective_affinity_mask(struct irq_data *d)
@@ -914,6 +919,14 @@ static inline void irq_data_update_effective_affinity(struct irq_data *d,
 {
 	cpumask_copy(d->common->effective_affinity, m);
 }
+static inline unsigned int irq_data_get_single_target(struct irq_data *d)
+{
+	return d->common->target_cpu;
+}
+static inline void irq_data_set_single_target(struct irq_data *d, unsigned int cpu)
+{
+	d->common->target_cpu = cpu;
+}
 #else
 static inline void irq_data_update_effective_affinity(struct irq_data *d,
 						      const struct cpumask *m)
@@ -923,6 +936,10 @@ static inline
 const struct cpumask *irq_data_get_effective_affinity_mask(struct irq_data *d)
 {
 	return irq_data_get_affinity_mask(d);
+}
+static inline unsigned int irq_data_get_single_target(struct irq_data *d)
+{
+	return IRQ_TARGET_MULTI_CPU;
 }
 #endif
 

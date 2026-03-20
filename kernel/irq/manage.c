@@ -217,11 +217,17 @@ static void irq_validate_effective_affinity(struct irq_data *data)
 {
 	const struct cpumask *m = irq_data_get_effective_affinity_mask(data);
 	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	unsigned int target = IRQ_TARGET_MULTI_CPU;
 
-	if (!cpumask_empty(m))
-		return;
-	pr_warn_once("irq_chip %s did not update eff. affinity mask of irq %u\n",
-		     chip->name, data->irq);
+	switch (cpumask_weight(m)) {
+	case 0:
+		pr_warn_once("irq_chip %s did not update eff. affinity mask of irq %u\n",
+			     chip->name, data->irq);
+		break;
+	case 1:
+		target = cpumask_first(m);
+	}
+	irq_data_set_single_target(data, target);
 }
 #else
 static inline void irq_validate_effective_affinity(struct irq_data *data) { }
