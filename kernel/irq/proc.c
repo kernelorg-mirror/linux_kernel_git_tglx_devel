@@ -452,6 +452,8 @@ void irq_proc_update_valid(struct irq_desc *desc)
 
 #ifdef CONFIG_GENERIC_IRQ_SHOW
 
+#define ARCH_PROC_IRQDESC ((void *)0x00001111)
+
 int __weak arch_show_interrupts(struct seq_file *p, int prec)
 {
 	return 0;
@@ -508,34 +510,29 @@ void irq_proc_emit_counts(struct seq_file *p, unsigned int __percpu *cnts)
 	irq_proc_emit_zero_counts(p, zeros);
 }
 
-int show_interrupts(struct seq_file *p, void *v)
+static int irq_seq_show(struct seq_file *p, void *v)
 {
-	int prec = READ_ONCE(irq_num_prec);
-
-	int i = *(loff_t *) v, j;
+	int prec = (int)(unsigned long)p->private;
+	struct irq_desc *desc = v;
 	struct irqaction *action;
-	struct irq_desc *desc;
 
-	if (i > ACTUAL_NR_IRQS)
-		return 0;
-
-	if (i == ACTUAL_NR_IRQS)
+	if (desc == ARCH_PROC_IRQDESC)
 		return arch_show_interrupts(p, prec);
 
-	/* print header and calculate the width of the first column */
-	if (i == 0) {
+	/* print header for the first interrupt indicated by !p>private */
+	if (!prec) {
+		unsigned int cpu;
+
+		prec = READ_ONCE(irq_num_prec);
 		seq_printf(p, "%*s", prec + 8, "");
-		for_each_online_cpu(j)
-			seq_printf(p, "CPU%-8d", j);
+		for_each_online_cpu(cpu)
+			seq_printf(p, "CPU%-8d", cpu);
 		seq_putc(p, '\n');
+		p->private = (void *)(unsigned long)prec;
 	}
 
-	guard(rcu)();
-	desc = irq_to_desc(i);
-	if (!desc || !irq_settings_proc_valid(desc))
-		return 0;
-
-	seq_printf(p, "%*d:", prec, i);
+	seq_put_decimal_ull_width(p, "", irq_desc_get_irq(desc), prec);
+	seq_putc(p, ':');
 
 	/*
 	 * Always output per CPU interrupts. Output device interrupts only when
@@ -582,4 +579,68 @@ int show_interrupts(struct seq_file *p, void *v)
 	seq_putc(p, '\n');
 	return 0;
 }
+
+static void *irq_seq_next_desc(loff_t *pos)
+{
+	struct irq_desc *desc;
+
+	if (*pos > total_nr_irqs)
+		return NULL;
+
+	guard(rcu)();
+	for (;;) {
+		desc = irq_find_desc_at_or_after((unsigned int) *pos);
+		if (desc) {
+			*pos = irq_desc_get_irq(desc);
+			/*
+			 * If valid for output try to acquire a reference count
+			 * on the descriptor so that it can't be freed after
+			 * dropping RCU read lock on return.
+			 */
+			if (irq_settings_proc_valid(desc) && irq_desc_get_ref(desc))
+				return desc;
+			(*pos)++;
+		} else {
+			*pos = total_nr_irqs;
+			return ARCH_PROC_IRQDESC;
+		}
+	}
+}
+
+static void *irq_seq_start(struct seq_file *f, loff_t *pos)
+{
+	if (!*pos)
+		f->private = NULL;
+	return irq_seq_next_desc(pos);
+}
+
+static void *irq_seq_next(struct seq_file *f, void *v, loff_t *pos)
+{
+	if (v && v != ARCH_PROC_IRQDESC)
+		irq_desc_put_ref(v);
+
+	(*pos)++;
+	return irq_seq_next_desc(pos);
+}
+
+static void irq_seq_stop(struct seq_file *f, void *v)
+{
+	if (v && v != ARCH_PROC_IRQDESC)
+		irq_desc_put_ref(v);
+}
+
+static const struct seq_operations irq_seq_ops = {
+	.start = irq_seq_start,
+	.next  = irq_seq_next,
+	.stop  = irq_seq_stop,
+	.show  = irq_seq_show,
+};
+
+static int __init irq_proc_init(void)
+{
+	proc_create_seq("interrupts", 0, NULL, &irq_seq_ops);
+	return 0;
+}
+fs_initcall(irq_proc_init);
+
 #endif
