@@ -1403,7 +1403,7 @@ perf_ibs_nmi_handler(unsigned int cmd, struct pt_regs *regs)
 	handled += perf_ibs_handle_irq(&perf_ibs_op, regs);
 
 	if (handled)
-		inc_irq_stat(apic_perf_irqs);
+		inc_irq_stat(APIC_PERF);
 
 	perf_sample_event_took(sched_clock() - stamp);
 

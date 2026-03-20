@@ -104,6 +104,8 @@ void __init native_init_IRQ(void)
 	if (!cpu_feature_enabled(X86_FEATURE_FRED))
 		idt_setup_apic_and_irq_gates();
 
+	irq_init_stats();
+
 	lapic_assign_system_vectors();
 
 	if (!acpi_ioapic && !of_ioapic && nr_legacy_irqs()) {

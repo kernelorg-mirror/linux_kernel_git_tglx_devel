@@ -1077,7 +1077,7 @@ static int p4_pmu_handle_irq(struct pt_regs *regs)
 	}
 
 	if (handled)
-		inc_irq_stat(apic_perf_irqs);
+		inc_irq_stat(APIC_PERF);
 
 	/*
 	 * When dealing with the unmasking of the LVTPC on P4 perf hw, it has
