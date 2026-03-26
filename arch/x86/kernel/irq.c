@@ -68,19 +68,24 @@ struct irq_stat_info {
 	const char	*text;
 };
 
+#define DEFAULT_SUPPRESSED_VECTOR	UINT_MAX
+
 #define ISS(idx, sym, txt) [IRQ_COUNT_##idx] = { .symbol = sym, .text = txt }
 
 #define ITS(idx, sym, txt) [IRQ_COUNT_##idx] =				\
 	{ .skip_vector = idx## _VECTOR, .symbol = sym, .text = txt }
 
+#define IDS(idx, sym, txt) [IRQ_COUNT_##idx] =				\
+	{ .skip_vector = DEFAULT_SUPPRESSED_VECTOR, .symbol = sym, .text = txt }
+
 static struct irq_stat_info irq_stat_info[IRQ_COUNT_MAX] __ro_after_init = {
 	ISS(NMI,			"NMI", "  Non-maskable interrupts\n"),
 #ifdef CONFIG_X86_LOCAL_APIC
 	ISS(APIC_TIMER,			"LOC", "  Local timer interrupts\n"),
-	ISS(SPURIOUS,			"SPU", "  Spurious interrupts\n"),
+	IDS(SPURIOUS,			"SPU", "  Spurious interrupts\n"),
 	ISS(APIC_PERF,			"PMI", "  Performance monitoring interrupts\n"),
 	ISS(IRQ_WORK,			"IWI", "  IRQ work interrupts\n"),
-	ISS(ICR_READ_RETRY,		"RTR", "  APIC ICR read retries\n"),
+	IDS(ICR_READ_RETRY,		"RTR", "  APIC ICR read retries\n"),
 	ISS(X86_PLATFORM_IPI,		"PLT", "  Platform interrupts\n"),
 #endif
 #ifdef CONFIG_SMP
@@ -126,7 +131,8 @@ void __init irq_init_stats(void)
 	struct irq_stat_info *info = irq_stat_info;
 
 	for (unsigned int i = 0; i < ARRAY_SIZE(irq_stat_info); i++, info++) {
-		if (info->skip_vector && test_bit(info->skip_vector, system_vectors))
+		if (info->skip_vector && info->skip_vector != DEFAULT_SUPPRESSED_VECTOR &&
+		    test_bit(info->skip_vector, system_vectors))
 			info->skip_vector = 0;
 	}
 
@@ -141,6 +147,17 @@ void __init irq_init_stats(void)
 #endif
 }
 
+/*
+ * Used for default enabled counters to increment the stats and to enable the
+ * entry for /proc/interrupts output.
+ */
+void irq_stat_inc_and_enable(enum irq_stat_counts which)
+{
+	this_cpu_inc(irq_stat.counts[which]);
+	/* Pairs with the READ_ONCE() in arch_show_interrupts() */
+	WRITE_ONCE(irq_stat_info[which].skip_vector, 0);
+}
+
 #ifdef CONFIG_PROC_FS
 /*
  * /proc/interrupts printing for arch specific interrupts
@@ -150,7 +167,7 @@ int arch_show_interrupts(struct seq_file *p, int prec)
 	const struct irq_stat_info *info = irq_stat_info;
 
 	for (unsigned int i = 0; i < ARRAY_SIZE(irq_stat_info); i++, info++) {
-		if (info->skip_vector)
+		if (READ_ONCE(info->skip_vector))
 			continue;
 
 		seq_printf(p, "%*s:", prec, info->symbol);
