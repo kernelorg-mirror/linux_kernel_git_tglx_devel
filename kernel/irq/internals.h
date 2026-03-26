@@ -12,6 +12,8 @@
 #include <linux/rcuref.h>
 #include <linux/sched/clock.h>
 
+#include "proc.h"
+
 #ifdef CONFIG_SPARSE_IRQ
 # define MAX_SPARSE_IRQS	INT_MAX
 #else
@@ -147,12 +149,6 @@ static inline void register_handler_proc(unsigned int irq,
 static inline void unregister_handler_proc(unsigned int irq,
 					   struct irqaction *action) { }
 static inline void irq_proc_update_valid(struct irq_desc *desc) { }
-#endif
-
-#if defined(CONFIG_PROC_FS) && defined(CONFIG_GENERIC_IRQ_SHOW)
-void irq_proc_calc_prec(void);
-#else
-static inline void irq_proc_calc_prec(void) { }
 #endif
 
 struct irq_desc *irq_find_desc_at_or_after(unsigned int offset);
