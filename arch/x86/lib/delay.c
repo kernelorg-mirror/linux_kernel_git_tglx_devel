@@ -13,7 +13,6 @@
  */
 
 #include <linux/export.h>
-#include <linux/sched.h>
 #include <linux/timex.h>
 #include <linux/preempt.h>
 #include <linux/delay.h>
@@ -22,10 +21,6 @@
 #include <asm/mwait.h>
 #include <asm/rdtsc.h>
 #include <asm/timer.h>
-
-#ifdef CONFIG_SMP
-# include <asm/smp.h>
-#endif
 
 static void delay_loop(u64 __loops);
 
@@ -189,13 +184,13 @@ void use_mwaitx_delay(void)
 	delay_fn = delay_halt;
 }
 
-int read_current_timer(unsigned long *timer_val)
+bool delay_read_timer(unsigned long *timer_val)
 {
 	if (delay_fn == delay_tsc) {
 		*timer_val = rdtsc();
-		return 0;
+		return true;
 	}
-	return -1;
+	return false;
 }
 
 void __delay(unsigned long loops)
