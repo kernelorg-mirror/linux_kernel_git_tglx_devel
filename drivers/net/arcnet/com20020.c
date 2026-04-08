@@ -70,8 +70,7 @@ static void com20020_copy_from_card(struct net_device *dev, int bufnum,
 	outb(ofs & 0xff, ioaddr + COM20020_REG_W_ADDR_LO);
 
 	/* copy the data */
-	TIME(dev, "insb", count,
-	     insb(ioaddr + COM20020_REG_RW_MEMDATA, buf, count));
+	insb(ioaddr + COM20020_REG_RW_MEMDATA, buf, count);
 }
 
 static void com20020_copy_to_card(struct net_device *dev, int bufnum,
@@ -84,8 +83,7 @@ static void com20020_copy_to_card(struct net_device *dev, int bufnum,
 	outb(ofs & 0xff, ioaddr + COM20020_REG_W_ADDR_LO);
 
 	/* copy the data */
-	TIME(dev, "outsb", count,
-	     outsb(ioaddr + COM20020_REG_RW_MEMDATA, buf, count));
+	outsb(ioaddr + COM20020_REG_RW_MEMDATA, buf, count);
 }
 
 /* Reset the card and check some basic stuff during the detection stage. */
