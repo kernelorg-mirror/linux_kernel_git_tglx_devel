@@ -4,6 +4,7 @@
 #include <linux/rbtree_augmented.h>
 #include <linux/prandom.h>
 #include <linux/slab.h>
+#include <linux/timekeeping.h>
 #include <asm/timex.h>
 
 #define __param(type, name, init, msg)		\
@@ -243,14 +244,14 @@ static void check_augmented(int nr_nodes)
 static int basic_check(void)
 {
 	int i, j;
-	cycles_t time1, time2, time;
+	ktime_t time1, time2, time;
 	struct rb_node *node;
 
 	printk(KERN_ALERT "rbtree testing");
 
 	init();
 
-	time1 = get_cycles();
+	time1 = ktime_get();
 
 	for (i = 0; i < perf_loops; i++) {
 		for (j = 0; j < nnodes; j++)
@@ -259,14 +260,14 @@ static int basic_check(void)
 			erase(nodes + j, &root);
 	}
 
-	time2 = get_cycles();
+	time2 = ktime_get();
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n",
+	printk(" -> test 1 (latency of nnodes insert+delete): %llu nsecs\n",
 	       (unsigned long long)time);
 
-	time1 = get_cycles();
+	time1 = ktime_get();
 
 	for (i = 0; i < perf_loops; i++) {
 		for (j = 0; j < nnodes; j++)
@@ -275,52 +276,52 @@ static int basic_check(void)
 			erase_cached(nodes + j, &root);
 	}
 
-	time2 = get_cycles();
+	time2 = ktime_get();
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n",
+	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu nsecs\n",
 	       (unsigned long long)time);
 
 	for (i = 0; i < nnodes; i++)
 		insert(nodes + i, &root);
 
-	time1 = get_cycles();
+	time1 = ktime_get();
 
 	for (i = 0; i < perf_loops; i++) {
 		for (node = rb_first(&root.rb_root); node; node = rb_next(node))
 			;
 	}
 
-	time2 = get_cycles();
+	time2 = ktime_get();
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk(" -> test 3 (latency of inorder traversal): %llu cycles\n",
+	printk(" -> test 3 (latency of inorder traversal): %llu nsecs\n",
 	       (unsigned long long)time);
 
-	time1 = get_cycles();
+	time1 = ktime_get();
 
 	for (i = 0; i < perf_loops; i++)
 		node = rb_first(&root.rb_root);
 
-	time2 = get_cycles();
+	time2 = ktime_get();
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
 	printk(" -> test 4 (latency to fetch first node)\n");
-	printk("        non-cached: %llu cycles\n", (unsigned long long)time);
+	printk("        non-cached: %llu nsecs\n", (unsigned long long)time);
 
-	time1 = get_cycles();
+	time1 = ktime_get();
 
 	for (i = 0; i < perf_loops; i++)
 		node = rb_first_cached(&root);
 
-	time2 = get_cycles();
+	time2 = ktime_get();
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk("        cached: %llu cycles\n", (unsigned long long)time);
+	printk("        cached: %llu nsecs\n", (unsigned long long)time);
 
 	for (i = 0; i < nnodes; i++)
 		erase(nodes + i, &root);
@@ -345,13 +346,13 @@ static int basic_check(void)
 static int augmented_check(void)
 {
 	int i, j;
-	cycles_t time1, time2, time;
+	ktime_t time1, time2, time;
 
 	printk(KERN_ALERT "augmented rbtree testing");
 
 	init();
 
-	time1 = get_cycles();
+	time1 = ktime_get();
 
 	for (i = 0; i < perf_loops; i++) {
 		for (j = 0; j < nnodes; j++)
@@ -360,13 +361,13 @@ static int augmented_check(void)
 			erase_augmented(nodes + j, &root);
 	}
 
-	time2 = get_cycles();
+	time2 = ktime_get();
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
+	printk(" -> test 1 (latency of nnodes insert+delete): %llu nsecs\n", (unsigned long long)time);
 
-	time1 = get_cycles();
+	time1 = ktime_get();
 
 	for (i = 0; i < perf_loops; i++) {
 		for (j = 0; j < nnodes; j++)
@@ -375,11 +376,11 @@ static int augmented_check(void)
 			erase_augmented_cached(nodes + j, &root);
 	}
 
-	time2 = get_cycles();
+	time2 = ktime_get();
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n", (unsigned long long)time);
+	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu nsecs\n", (unsigned long long)time);
 
 	for (i = 0; i < check_loops; i++) {
 		init();
