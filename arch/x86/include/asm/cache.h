@@ -2,6 +2,7 @@
 #ifndef _ASM_X86_CACHE_H
 #define _ASM_X86_CACHE_H
 
+#include <vdso/page.h>
 #include <linux/linkage.h>
 
 /* L1 cache line size */

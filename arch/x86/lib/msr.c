@@ -122,6 +122,20 @@ int msr_clear_bit(u32 msr, u8 bit)
 }
 EXPORT_SYMBOL_FOR_KVM(msr_clear_bit);
 
+#ifndef CONFIG_SMP
+void rdmsr_on_cpus(const struct cpumask *m, u32 msr_no, struct msr __percpu *msrs)
+{
+	rdmsr_on_cpu(0, msr_no, raw_cpu_ptr(&msrs->l), raw_cpu_ptr(&msrs->h));
+}
+EXPORT_SYMBOL(rdmsr_on_cpus);
+
+void wrmsr_on_cpus(const struct cpumask *m, u32 msr_no, struct msr __percpu *msrs)
+{
+	wrmsr_on_cpu(0, msr_no, raw_cpu_read(msrs->l), raw_cpu_read(msrs->h));
+}
+EXPORT_SYMBOL(wrmsr_on_cpus);
+#endif
+
 #ifdef CONFIG_TRACEPOINTS
 void do_trace_write_msr(u32 msr, u64 val, int failed)
 {

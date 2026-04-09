@@ -8,12 +8,13 @@
 
 #include <asm/asm.h>
 #include <asm/errno.h>
-#include <asm/cpumask.h>
 #include <uapi/asm/msr.h>
 #include <asm/shared/msr.h>
 
+#include <linux/compiler_types.h>
 #include <linux/types.h>
-#include <linux/percpu.h>
+
+struct cpumask;
 
 struct msr_info {
 	u32			msr_no;
@@ -256,10 +257,10 @@ int msr_set_bit(u32 msr, u8 bit);
 int msr_clear_bit(u32 msr, u8 bit);
 
 #ifdef CONFIG_SMP
+struct cpumask;
+
 int rdmsrq_on_cpu(unsigned int cpu, u32 msr_no, u64 *q);
 int wrmsrq_on_cpu(unsigned int cpu, u32 msr_no, u64 q);
-void rdmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *msrs);
-void wrmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *msrs);
 int rdmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 *q);
 int wrmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 q);
 int rdmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8]);
@@ -274,16 +275,6 @@ static inline int wrmsrq_on_cpu(unsigned int cpu, u32 msr_no, u64 q)
 {
 	wrmsrq(msr_no, q);
 	return 0;
-}
-static inline void rdmsr_on_cpus(const struct cpumask *m, u32 msr_no,
-				struct msr __percpu *msrs)
-{
-	rdmsrq_on_cpu(0, msr_no, raw_cpu_ptr(&msrs->q));
-}
-static inline void wrmsr_on_cpus(const struct cpumask *m, u32 msr_no,
-				struct msr __percpu *msrs)
-{
-	wrmsrq_on_cpu(0, msr_no, raw_cpu_read(msrs->q));
 }
 static inline int rdmsrq_safe_on_cpu(unsigned int cpu, u32 msr_no, u64 *q)
 {
@@ -302,5 +293,10 @@ static inline int wrmsr_safe_regs_on_cpu(unsigned int cpu, u32 regs[8])
 	return wrmsr_safe_regs(regs);
 }
 #endif  /* CONFIG_SMP */
+
+/* Out of line also on UP to avoid pulling linux/percpu.h in */
+void rdmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *msrs);
+void wrmsr_on_cpus(const struct cpumask *mask, u32 msr_no, struct msr __percpu *msrs);
+
 #endif /* __ASSEMBLER__ */
 #endif /* _ASM_X86_MSR_H */
