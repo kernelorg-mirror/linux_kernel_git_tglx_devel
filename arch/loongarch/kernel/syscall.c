@@ -20,6 +20,7 @@
 #include <asm/loongarch.h>
 #include <asm/signal.h>
 #include <asm/switch_to.h>
+#include <asm/timex.h>
 #include <asm-generic/syscalls.h>
 
 #undef __SYSCALL
