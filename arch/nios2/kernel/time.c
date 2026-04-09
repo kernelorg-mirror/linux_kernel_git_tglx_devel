@@ -7,7 +7,6 @@
  * License. See the file "COPYING" in the main directory of this archive
  * for more details.
  */
-
 #include <linux/export.h>
 #include <linux/interrupt.h>
 #include <linux/clockchips.h>
@@ -18,6 +17,8 @@
 #include <linux/of_irq.h>
 #include <linux/io.h>
 #include <linux/slab.h>
+
+#include <asm/timex.h>
 
 #define ALTR_TIMER_COMPATIBLE		"altr,timer-1.0"
 
