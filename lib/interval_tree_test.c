@@ -6,7 +6,6 @@
 #include <linux/slab.h>
 #include <linux/printk.h>
 #include <linux/timekeeping.h>
-#include <asm/timex.h>
 #include <linux/bitmap.h>
 #include <linux/maple_tree.h>
 

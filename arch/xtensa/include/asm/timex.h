@@ -55,6 +55,4 @@ static inline void set_linux_timer (unsigned long ccompare)
 	xtensa_set_sr(ccompare, SREG_CCOMPARE + LINUX_TIMER);
 }
 
-#include <asm-generic/timex.h>
-
 #endif	/* _XTENSA_TIMEX_H */

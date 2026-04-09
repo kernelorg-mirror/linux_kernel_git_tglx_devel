@@ -5,7 +5,6 @@
 #include <linux/prandom.h>
 #include <linux/slab.h>
 #include <linux/timekeeping.h>
-#include <asm/timex.h>
 
 #define __param(type, name, init, msg)		\
 	static type name = init;		\
