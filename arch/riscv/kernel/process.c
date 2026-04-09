@@ -15,6 +15,7 @@
 #include <linux/sched/task_stack.h>
 #include <linux/tick.h>
 #include <linux/ptrace.h>
+#include <linux/random.h>
 #include <linux/uaccess.h>
 #include <linux/personality.h>
 #include <linux/entry-common.h>
