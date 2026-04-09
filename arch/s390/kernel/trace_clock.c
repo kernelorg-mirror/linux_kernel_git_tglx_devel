@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 #include <linux/trace_clock.h>
-#include <linux/timex.h>
+#include <asm/timex.h>
+
 /*
  * trace_clock_s390_tod(): trace clock based on the s390 TOD clock
  *
