@@ -19,6 +19,7 @@
 #include <linux/perf_event.h>
 #include <linux/uaccess.h>
 
+#include <asm/cpu-type.h>
 #include <asm/irq.h>
 #include <asm/irq_regs.h>
 #include <asm/stacktrace.h>

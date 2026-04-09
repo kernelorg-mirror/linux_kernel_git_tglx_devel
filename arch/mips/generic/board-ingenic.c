@@ -17,6 +17,7 @@
 #include <linux/types.h>
 
 #include <asm/bootinfo.h>
+#include <asm/cpu-type.h>
 #include <asm/io.h>
 #include <asm/machine.h>
 #include <asm/reboot.h>
