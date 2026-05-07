@@ -150,16 +150,16 @@ extern void bad_put_le(void);
 
 static void go(void *raw_addr, size_t raw_len,
 	       void *stripped_addr, size_t stripped_len,
-	       FILE *outfile, const char *name)
+	       FILE *outfile, const char *name, const char *dbg_name)
 {
 	Elf64_Ehdr *hdr = (Elf64_Ehdr *)raw_addr;
 
 	if (hdr->e_ident[EI_CLASS] == ELFCLASS64) {
 		go64(raw_addr, raw_len, stripped_addr, stripped_len,
-		     outfile, name);
+		     outfile, name, dbg_name);
 	} else if (hdr->e_ident[EI_CLASS] == ELFCLASS32) {
 		go32(raw_addr, raw_len, stripped_addr, stripped_len,
-		     outfile, name);
+		     outfile, name, dbg_name);
 	} else {
 		fail("unknown ELF class\n");
 	}
@@ -189,8 +189,8 @@ int main(int argc, char **argv)
 {
 	size_t raw_len, stripped_len;
 	void *raw_addr, *stripped_addr;
+	char *name, *tmp, *dbg_name;
 	FILE *outfile;
-	char *name, *tmp;
 	int namelen;
 
 	if (argc != 4) {
@@ -226,7 +226,12 @@ int main(int argc, char **argv)
 	if (!outfile)
 		err(1, "fopen(%s)", outfilename);
 
-	go(raw_addr, raw_len, stripped_addr, stripped_len, outfile, name);
+	dbg_name = strdup(argv[1]);
+	tmp = strrchr(dbg_name, '/');
+	if (tmp)
+		dbg_name = tmp + 1;
+
+	go(raw_addr, raw_len, stripped_addr, stripped_len, outfile, name, dbg_name);
 
 	munmap(raw_addr, raw_len);
 	munmap(stripped_addr, stripped_len);

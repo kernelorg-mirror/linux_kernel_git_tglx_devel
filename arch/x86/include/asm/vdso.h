@@ -14,6 +14,9 @@ struct vdso_image {
 	void *data;
 	unsigned long size;   /* Always a multiple of PAGE_SIZE */
 
+	void *dbg_data;
+	unsigned long dbg_size;   /* Always a multiple of PAGE_SIZE */
+
 	unsigned long alt, alt_len;
 	unsigned long extable_base, extable_len;
 	const void *extable;

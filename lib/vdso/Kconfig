@@ -3,6 +3,9 @@
 config HAVE_GENERIC_VDSO
 	bool
 
+config HAVE_VDSO_DEBUG_SYSFS
+	bool
+
 if HAVE_GENERIC_VDSO
 
 config GENERIC_GETTIMEOFDAY
@@ -23,5 +26,8 @@ config VDSO_GETRANDOM
 	bool
 	help
 	  Selected by architectures that support vDSO getrandom().
+
+config VDSO_DEBUG_SYSFS
+	def_bool y if SYSFS && HAVE_VDSO_DEBUG_SYSFS
 
 endif

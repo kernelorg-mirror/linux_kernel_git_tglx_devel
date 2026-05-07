@@ -42,11 +42,12 @@ static void BITSFUNC(extract)(const unsigned char *data, size_t data_len,
 
 static void BITSFUNC(go)(void *raw_addr, size_t raw_len,
 			 void *stripped_addr, size_t stripped_len,
-			 FILE *outfile, const char *image_name)
+			 FILE *outfile, const char *image_name,
+			 const char *dbg_name)
 {
 	int found_load = 0;
 	unsigned long load_size = -1;  /* Work around bogus warning */
-	unsigned long mapping_size;
+	unsigned long mapping_size, dbg_size;
 	ELF(Ehdr) *hdr = (ELF(Ehdr) *)raw_addr;
 	unsigned long i, syms_nr;
 	ELF(Shdr) *symtab_hdr = NULL, *strtab_hdr, *secstrings_hdr,
@@ -160,6 +161,7 @@ static void BITSFUNC(go)(void *raw_addr, size_t raw_len,
 	fprintf(outfile, "/* AUTOMATICALLY GENERATED -- DO NOT EDIT */\n\n");
 	fprintf(outfile, "#include <linux/linkage.h>\n");
 	fprintf(outfile, "#include <linux/init.h>\n");
+	fprintf(outfile, "#include <vdso/sysfs.h>\n");
 	fprintf(outfile, "#include <asm/page_types.h>\n");
 	fprintf(outfile, "#include <asm/vdso.h>\n");
 	fprintf(outfile, "\n");
@@ -173,6 +175,21 @@ static void BITSFUNC(go)(void *raw_addr, size_t raw_len,
 			(int)((unsigned char *)stripped_addr)[i]);
 	}
 	fprintf(outfile, "\n};\n\n");
+
+	dbg_size = (raw_len + 4095) / 4096 * 4096;
+
+	fprintf(outfile, "#ifdef CONFIG_VDSO_DEBUG_SYSFS\n");
+	fprintf(outfile,
+		"static unsigned char dbg_data[%lu] __ro_after_init __aligned(PAGE_SIZE) = {",
+		dbg_size);
+	for (i = 0; i < raw_len; i++) {
+		if (i % 10 == 0)
+			fprintf(outfile, "\n\t");
+		fprintf(outfile, "0x%02X, ", (int)((unsigned char *)raw_addr)[i]);
+	}
+	fprintf(outfile, "\n};\n");
+	fprintf(outfile, "#endif\n\n");
+
 	if (extable_sec)
 		BITSFUNC(extract)(raw_addr, raw_len, outfile,
 				  extable_sec, "extable");
@@ -180,6 +197,10 @@ static void BITSFUNC(go)(void *raw_addr, size_t raw_len,
 	fprintf(outfile, "const struct vdso_image %s = {\n", image_name);
 	fprintf(outfile, "\t.data = raw_data,\n");
 	fprintf(outfile, "\t.size = %lu,\n", mapping_size);
+	fprintf(outfile, "#ifdef CONFIG_VDSO_DEBUG_SYSFS\n");
+	fprintf(outfile, "\t.dbg_data = dbg_data,\n");
+	fprintf(outfile, "\t.dbg_size = %lu,\n", dbg_size);
+	fprintf(outfile, "#endif\n");
 	if (alt_sec) {
 		fprintf(outfile, "\t.alt = %lu,\n",
 			(unsigned long)GET_LE(&alt_sec->sh_offset));
@@ -205,4 +226,11 @@ static void BITSFUNC(go)(void *raw_addr, size_t raw_len,
 	fprintf(outfile, "};\n");
 	fprintf(outfile, "subsys_initcall(init_%s);\n", image_name);
 
+	fprintf(outfile, "\n#ifdef CONFIG_VDSO_DEBUG_SYSFS\n");
+	fprintf(outfile, "static __init int sysfs_init_%s(void) {\n", image_name);
+	fprintf(outfile, "\treturn vdso_sysfs_init_image(\"%s\", (void *)%s.dbg_data, %lu);\n",
+		dbg_name, image_name, raw_len);
+	fprintf(outfile, "};\n");
+	fprintf(outfile, "late_initcall(sysfs_init_%s);\n", image_name);
+	fprintf(outfile, "#endif\n");
 }
