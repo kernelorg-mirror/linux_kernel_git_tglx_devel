@@ -99,12 +99,14 @@ static inline void timespec_to_pps_ktime(struct pps_ktime *kt,
 
 static inline void pps_get_ts(struct pps_event_time *ts)
 {
+#ifdef CONFIG_NTP_PPS
 	struct system_time_snapshot snap;
 
-	ktime_get_snapshot(&snap);
-	ts->ts_real = ktime_to_timespec64(snap.real);
-#ifdef CONFIG_NTP_PPS
+	ktime_get_snapshot_id(&snap, CLOCK_REALTIME);
+	ts->ts_real = ktime_to_timespec64(snap.sys);
 	ts->ts_raw = ktime_to_timespec64(snap.raw);
+#else
+	ktime_get_real_ts64(&ts->ts_real);
 #endif
 }
 
