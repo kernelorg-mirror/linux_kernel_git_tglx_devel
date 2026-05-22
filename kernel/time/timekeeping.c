@@ -1342,7 +1342,7 @@ static int adjust_historical_crosststamp(struct system_time_snapshot *history,
 			(corr_raw, tk->tkr_mono.mult, tk->tkr_raw.mult);
 	} else {
 		corr_real = (u64)ktime_to_ns(
-			ktime_sub(ts->sys_realtime, history->real));
+			ktime_sub(ts->sys_realtime, history->sys));
 		ret = scale64_check_overflow(partial_history_cycles,
 					     total_history_cycles, &corr_real);
 		if (ret)
@@ -1352,7 +1352,7 @@ static int adjust_historical_crosststamp(struct system_time_snapshot *history,
 	/* Fixup monotonic raw and real time time values */
 	if (interp_forward) {
 		ts->sys_monoraw = ktime_add_ns(history->raw, corr_raw);
-		ts->sys_realtime = ktime_add_ns(history->real, corr_real);
+		ts->sys_realtime = ktime_add_ns(history->sys, corr_real);
 	} else {
 		ts->sys_monoraw = ktime_sub_ns(ts->sys_monoraw, corr_raw);
 		ts->sys_realtime = ktime_sub_ns(ts->sys_realtime, corr_real);
