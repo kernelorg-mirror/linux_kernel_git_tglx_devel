@@ -280,8 +280,6 @@ static inline bool ktime_get_aux_ts64(clockid_t id, struct timespec64 *kt) { ret
  *				 a selected CLOCK_* and the clocksource counter value
  * @cycles:		Clocksource counter value to produce the system times
  * @sys:		The system time of the selected CLOCK ID
- * @real:		Realtime system time
- * @boot:		Boot time
  * @raw:		Monotonic raw system time
  * @cs_id:		Clocksource ID
  * @clock_was_set_seq:	The sequence number of clock-was-set events
@@ -291,8 +289,6 @@ static inline bool ktime_get_aux_ts64(clockid_t id, struct timespec64 *kt) { ret
 struct system_time_snapshot {
 	u64			cycles;
 	ktime_t			sys;
-	ktime_t			real;
-	ktime_t			boot;
 	ktime_t			raw;
 	enum clocksource_ids	cs_id;
 	unsigned int		clock_was_set_seq;
