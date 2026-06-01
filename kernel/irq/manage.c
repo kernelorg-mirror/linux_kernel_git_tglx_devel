@@ -653,7 +653,7 @@ int irq_set_vcpu_affinity(unsigned int irq, void *vcpu_info)
 	scoped_irqdesc_get_and_lock(irq, 0) {
 		struct irq_desc *desc = scoped_irqdesc;
 		struct irq_data *data;
-		struct irq_chip *chip;
+		const struct irq_chip *chip;
 
 		data = irq_desc_get_irq_data(desc);
 		do {
@@ -1351,7 +1351,7 @@ static int irq_setup_forced_threading(struct irqaction *new)
 static int irq_request_resources(struct irq_desc *desc)
 {
 	struct irq_data *d = &desc->irq_data;
-	struct irq_chip *c = d->chip;
+	const struct irq_chip *c = d->chip;
 
 	return c->irq_request_resources ? c->irq_request_resources(d) : 0;
 }
@@ -1359,7 +1359,7 @@ static int irq_request_resources(struct irq_desc *desc)
 static void irq_release_resources(struct irq_desc *desc)
 {
 	struct irq_data *d = &desc->irq_data;
-	struct irq_chip *c = d->chip;
+	const struct irq_chip *c = d->chip;
 
 	if (c->irq_release_resources)
 		c->irq_release_resources(d);
@@ -1384,7 +1384,7 @@ static bool irq_supports_nmi(struct irq_desc *desc)
 static int irq_nmi_setup(struct irq_desc *desc)
 {
 	struct irq_data *d = irq_desc_get_irq_data(desc);
-	struct irq_chip *c = d->chip;
+	const struct irq_chip *c = d->chip;
 
 	return c->irq_nmi_setup ? c->irq_nmi_setup(d) : -EINVAL;
 }
@@ -1392,7 +1392,7 @@ static int irq_nmi_setup(struct irq_desc *desc)
 static void irq_nmi_teardown(struct irq_desc *desc)
 {
 	struct irq_data *d = irq_desc_get_irq_data(desc);
-	struct irq_chip *c = d->chip;
+	const struct irq_chip *c = d->chip;
 
 	if (c->irq_nmi_teardown)
 		c->irq_nmi_teardown(d);
@@ -2743,7 +2743,7 @@ int irq_set_irqchip_state(unsigned int irq, enum irqchip_irq_state which, bool v
 {
 	scoped_irqdesc_get_and_buslock(irq, 0) {
 		struct irq_data *data = irq_desc_get_irq_data(scoped_irqdesc);
-		struct irq_chip *chip;
+		const struct irq_chip *chip;
 
 		do {
 			chip = irq_data_get_irq_chip(data);
