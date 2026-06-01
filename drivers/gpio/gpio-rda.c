@@ -180,7 +180,7 @@ static int rda_gpio_irq_set_type(struct irq_data *data, unsigned int flow_type)
 static void rda_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
-	struct irq_chip *ic = irq_desc_get_chip(desc);
+	const struct irq_chip *ic = irq_desc_get_chip(desc);
 	struct rda_gpio *rda_gpio = gpiochip_get_data(chip);
 	unsigned long status;
 	u32 n;

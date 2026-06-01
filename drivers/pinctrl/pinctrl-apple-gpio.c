@@ -341,7 +341,7 @@ static int apple_gpio_irq_set_type(struct irq_data *data, unsigned int type)
 
 static void apple_gpio_irq_handler(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	u8 *grpp = irq_desc_get_handler_data(desc);
 	struct apple_gpio_pinctrl *pctl;
 	unsigned int pinh, pinl;

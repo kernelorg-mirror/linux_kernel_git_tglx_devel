@@ -179,7 +179,7 @@ static const struct irq_chip ath79_gpio_irqchip = {
 static void ath79_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	struct gpio_generic_chip *gen_gc = to_gpio_generic_chip(gc);
 	struct ath79_gpio_ctrl *ctrl =
 		container_of(gen_gc, struct ath79_gpio_ctrl, chip);

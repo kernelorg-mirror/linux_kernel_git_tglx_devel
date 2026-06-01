@@ -217,7 +217,7 @@ static const struct irq_domain_ops intx_domain_ops = {
 static void xilinx_cpm_pcie_intx_flow(struct irq_desc *desc)
 {
 	struct xilinx_cpm_pcie *port = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long val;
 	int i;
 
@@ -279,7 +279,7 @@ static const struct irq_domain_ops event_domain_ops = {
 static void xilinx_cpm_pcie_event_flow(struct irq_desc *desc)
 {
 	struct xilinx_cpm_pcie *port = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	const struct xilinx_cpm_variant *variant = port->variant;
 	unsigned long val;
 	int i;

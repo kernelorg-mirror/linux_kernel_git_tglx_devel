@@ -1175,7 +1175,7 @@ static const struct irq_chip starfive_irq_chip = {
 static void starfive_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct starfive_pinctrl *sfp = starfive_from_irq_desc(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long mis;
 	unsigned int pin;
 

@@ -478,7 +478,7 @@ static void xgpio_irqhandler(struct irq_desc *desc)
 {
 	struct xgpio_instance *chip = irq_desc_get_handler_data(desc);
 	struct gpio_chip *gc = &chip->gc;
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	DECLARE_BITMAP(rising, 64);
 	DECLARE_BITMAP(falling, 64);
 	DECLARE_BITMAP(hw, 64);

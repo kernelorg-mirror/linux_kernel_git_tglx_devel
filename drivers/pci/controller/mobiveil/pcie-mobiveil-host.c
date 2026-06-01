@@ -82,7 +82,7 @@ static struct pci_ops mobiveil_pcie_ops = {
 
 static void mobiveil_pcie_isr(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct mobiveil_pcie *pcie = irq_desc_get_handler_data(desc);
 	struct device *dev = &pcie->pdev->dev;
 	struct mobiveil_root_port *rp = &pcie->rp;

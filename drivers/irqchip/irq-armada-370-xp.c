@@ -670,7 +670,7 @@ static inline void mpic_handle_ipi_irq(struct mpic *mpic) {}
 static void mpic_handle_cascade_irq(struct irq_desc *desc)
 {
 	struct mpic *mpic = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long cause;
 	u32 irqsrc, cpuid;
 	irq_hw_number_t i;

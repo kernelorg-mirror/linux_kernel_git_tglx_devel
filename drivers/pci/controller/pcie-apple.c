@@ -382,7 +382,7 @@ static const struct irq_domain_ops apple_port_irq_domain_ops = {
 static void apple_port_irq_handler(struct irq_desc *desc)
 {
 	struct apple_pcie_port *port = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long stat;
 	int i;
 

@@ -117,7 +117,7 @@ static void bcm6345_l1_irq_handle(struct irq_desc *desc)
 {
 	struct bcm6345_l1_cpu *cpu = irq_desc_get_handler_data(desc);
 	struct bcm6345_l1_chip *intc = cpu->intc;
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int idx;
 
 	chained_irq_enter(chip, desc);

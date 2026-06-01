@@ -89,7 +89,7 @@ static inline unsigned int socrates_fpga_pic_get_irq(unsigned int irq)
 
 static void socrates_fpga_pic_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int irq = irq_desc_get_irq(desc);
 	unsigned int cascade_irq;
 

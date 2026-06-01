@@ -546,7 +546,7 @@ static const struct msi_parent_ops brcm_msi_parent_ops = {
 
 static void brcm_pcie_msi_isr(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long status;
 	struct brcm_msi *msi;
 	struct device *dev;

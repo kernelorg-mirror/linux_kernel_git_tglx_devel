@@ -204,7 +204,7 @@ static int npcmgpio_gpio_request(struct gpio_chip *chip, unsigned int offset)
 static void npcmgpio_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *gc;
-	struct irq_chip *chip;
+	const struct irq_chip *chip;
 	struct npcm7xx_gpio *bank;
 	unsigned long sts, en, bit;
 

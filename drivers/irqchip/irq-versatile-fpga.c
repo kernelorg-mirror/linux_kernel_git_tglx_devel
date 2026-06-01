@@ -81,7 +81,7 @@ static const struct irq_chip fpga_chip = {
 
 static void fpga_irq_handle(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct fpga_irq_data *f = irq_desc_get_handler_data(desc);
 	u32 status;
 

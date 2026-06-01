@@ -451,7 +451,7 @@ void unmask_irq(struct irq_desc *desc)
 
 void unmask_threaded_irq(struct irq_desc *desc)
 {
-	struct irq_chip *chip = desc->irq_data.chip;
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	if (chip->flags & IRQCHIP_EOI_THREADED)
 		chip->irq_eoi(&desc->irq_data);
@@ -738,7 +738,7 @@ static inline void cond_eoi_irq(const struct irq_chip *chip, struct irq_data *da
  */
 void handle_fasteoi_irq(struct irq_desc *desc)
 {
-	struct irq_chip *chip = desc->irq_data.chip;
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	guard(raw_spinlock)(&desc->lock);
 
@@ -790,7 +790,7 @@ EXPORT_SYMBOL_GPL(handle_fasteoi_irq);
  */
 void handle_fasteoi_nmi(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irqaction *action = desc->action;
 	unsigned int irq = irq_desc_get_irq(desc);
 	irqreturn_t res;
@@ -869,7 +869,7 @@ EXPORT_SYMBOL(handle_edge_irq);
  */
 void handle_percpu_irq(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	/*
 	 * PER CPU interrupts are not serialized. Do not touch
@@ -902,7 +902,7 @@ void handle_percpu_irq(struct irq_desc *desc)
  */
 void handle_percpu_devid_irq(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int irq = irq_desc_get_irq(desc);
 	unsigned int cpu = smp_processor_id();
 	struct irqaction *action;
@@ -1090,7 +1090,7 @@ void irq_cpu_online(void)
 
 	for_each_active_irq(irq) {
 		struct irq_desc *desc = irq_to_desc(irq);
-		struct irq_chip *chip;
+		const struct irq_chip *chip;
 
 		if (!desc)
 			continue;
@@ -1116,7 +1116,7 @@ void irq_cpu_offline(void)
 
 	for_each_active_irq(irq) {
 		struct irq_desc *desc = irq_to_desc(irq);
-		struct irq_chip *chip;
+		const struct irq_chip *chip;
 
 		if (!desc)
 			continue;
@@ -1145,7 +1145,7 @@ void irq_cpu_offline(void)
  */
 void handle_fasteoi_ack_irq(struct irq_desc *desc)
 {
-	struct irq_chip *chip = desc->irq_data.chip;
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	guard(raw_spinlock)(&desc->lock);
 
@@ -1183,7 +1183,7 @@ EXPORT_SYMBOL_GPL(handle_fasteoi_ack_irq);
  */
 void handle_fasteoi_mask_irq(struct irq_desc *desc)
 {
-	struct irq_chip *chip = desc->irq_data.chip;
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	guard(raw_spinlock)(&desc->lock);
 	mask_ack_irq(desc);

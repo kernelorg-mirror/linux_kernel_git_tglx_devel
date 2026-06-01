@@ -107,7 +107,7 @@ static irqreturn_t ep93xx_ab_irq_handler(int irq, void *dev_id)
 
 static void ep93xx_gpio_f_irq_handler(struct irq_desc *desc)
 {
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct gpio_irq_chip *gic = &gc->irq;
 	unsigned int parent = irq_desc_get_irq(desc);

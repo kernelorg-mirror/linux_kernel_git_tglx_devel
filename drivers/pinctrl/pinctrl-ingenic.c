@@ -3780,7 +3780,7 @@ static void ingenic_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct ingenic_gpio_chip *jzgc = gpiochip_get_data(gc);
-	struct irq_chip *irq_chip = irq_data_get_irq_chip(&desc->irq_data);
+	const struct irq_chip *irq_chip = irq_data_get_irq_chip(&desc->irq_data);
 	unsigned long flag, i;
 
 	chained_irq_enter(irq_chip, desc);

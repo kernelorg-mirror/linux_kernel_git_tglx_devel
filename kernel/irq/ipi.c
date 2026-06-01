@@ -227,7 +227,7 @@ static int ipi_send_verify(struct irq_chip *chip, struct irq_data *data,
 int __ipi_send_single(struct irq_desc *desc, unsigned int cpu)
 {
 	struct irq_data *data = irq_desc_get_irq_data(desc);
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 
 #ifdef DEBUG
 	/*
@@ -269,7 +269,7 @@ int __ipi_send_single(struct irq_desc *desc, unsigned int cpu)
 int __ipi_send_mask(struct irq_desc *desc, const struct cpumask *dest)
 {
 	struct irq_data *data = irq_desc_get_irq_data(desc);
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 	unsigned int cpu;
 
 #ifdef DEBUG

@@ -135,7 +135,7 @@ static void rockchip_pcie_writel_apb(struct rockchip_pcie *rockchip, u32 val,
 
 static void rockchip_pcie_intx_handler(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct rockchip_pcie *rockchip = irq_desc_get_handler_data(desc);
 	unsigned long reg, hwirq;
 

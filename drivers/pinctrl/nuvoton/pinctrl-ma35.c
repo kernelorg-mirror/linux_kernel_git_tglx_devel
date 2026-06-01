@@ -488,7 +488,7 @@ static void ma35_irq_demux_intgroup(struct irq_desc *desc)
 {
 	struct ma35_pin_bank *bank = gpiochip_get_data(irq_desc_get_handler_data(desc));
 	struct irq_domain *irqdomain = bank->chip.irq.domain;
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	unsigned long isr;
 	int offset;
 

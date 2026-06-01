@@ -1245,7 +1245,7 @@ void __init print_IO_APICs(void)
 	apic_dbg("IRQ to pin mappings:\n");
 	for_each_active_irq(irq) {
 		struct irq_pin_list *entry;
-		struct irq_chip *chip;
+		const struct irq_chip *chip;
 		struct mp_chip_data *data;
 
 		chip = irq_get_chip(irq);

@@ -354,7 +354,7 @@ static unsigned int stm32_adc_eoc_enabled(struct stm32_adc_priv *priv,
 static void stm32_adc_irq_handler(struct irq_desc *desc)
 {
 	struct stm32_adc_priv *priv = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	int i;
 	u32 status;
 

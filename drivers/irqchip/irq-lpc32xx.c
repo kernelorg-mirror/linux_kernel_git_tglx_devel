@@ -152,7 +152,7 @@ static void __exception_irq_entry lpc32xx_handle_irq(struct pt_regs *regs)
 static void lpc32xx_sic_handler(struct irq_desc *desc)
 {
 	struct lpc32xx_irq_chip *ic = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	u32 hwirq = lpc32xx_ic_read(ic, LPC32XX_INTC_STAT), irq;
 
 	chained_irq_enter(chip, desc);

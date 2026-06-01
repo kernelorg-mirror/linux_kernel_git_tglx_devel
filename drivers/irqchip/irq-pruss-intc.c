@@ -479,7 +479,7 @@ static const struct irq_domain_ops pruss_intc_irq_domain_ops = {
 static void pruss_intc_irq_handler(struct irq_desc *desc)
 {
 	unsigned int irq = irq_desc_get_irq(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct pruss_host_irq_data *host_irq_data = irq_get_handler_data(irq);
 	struct pruss_intc *intc = host_irq_data->intc;
 	u8 host_irq = host_irq_data->host_irq + FIRST_PRU_HOST_INT;

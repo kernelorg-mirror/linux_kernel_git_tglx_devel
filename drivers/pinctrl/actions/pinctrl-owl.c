@@ -847,7 +847,7 @@ static const struct irq_chip owl_gpio_irqchip = {
 static void owl_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct owl_pinctrl *pctrl = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irq_domain *domain = pctrl->chip.irq.domain;
 	unsigned int parent = irq_desc_get_irq(desc);
 	const struct owl_gpio_port *port;

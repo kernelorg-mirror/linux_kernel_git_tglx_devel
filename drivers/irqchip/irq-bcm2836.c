@@ -155,7 +155,7 @@ static struct irq_domain *ipi_domain;
 
 static void bcm2836_arm_irqchip_handle_ipi(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	int cpu = smp_processor_id();
 	u32 mbox_val;
 

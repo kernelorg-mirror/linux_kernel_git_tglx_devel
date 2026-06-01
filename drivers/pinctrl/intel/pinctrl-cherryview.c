@@ -1395,7 +1395,7 @@ static void chv_gpio_irq_handler(struct irq_desc *desc)
 	struct device *dev = pctrl->dev;
 	const struct intel_community *community = &pctrl->communities[0];
 	struct intel_community_context *cctx = &pctrl->context.communities[0];
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long pending;
 	u32 intr_line;
 

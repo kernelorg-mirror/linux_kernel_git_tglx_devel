@@ -90,7 +90,7 @@ enum {	MODE_ENABLE_REG = 0, /* Bit(s) set -> interrupt enabled */
 
 static inline struct intc_desc_int *get_intc_desc(unsigned int irq)
 {
-	struct irq_chip *chip = irq_get_chip(irq);
+	const struct irq_chip *chip = irq_get_chip(irq);
 
 	return container_of(chip, struct intc_desc_int, chip);
 }

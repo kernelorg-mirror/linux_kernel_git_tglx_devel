@@ -861,7 +861,7 @@ static void mtk_pcie_msi_handler(struct mtk_gen3_pcie *pcie, int set_idx)
 static void mtk_pcie_irq_handler(struct irq_desc *desc)
 {
 	struct mtk_gen3_pcie *pcie = irq_desc_get_handler_data(desc);
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	unsigned long status;
 	irq_hw_number_t irq_bit = PCIE_INTX_SHIFT;
 

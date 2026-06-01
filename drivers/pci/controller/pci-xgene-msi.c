@@ -245,7 +245,7 @@ static int xgene_msi_init_allocator(struct device *dev)
 static void xgene_msi_isr(struct irq_desc *desc)
 {
 	unsigned int *irqp = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct xgene_msi *xgene_msi = xgene_msi_ctrl;
 	unsigned long grp_pending;
 	int msir_idx;

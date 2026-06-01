@@ -313,7 +313,7 @@ static void brcmstb_gpio_irq_bank_handler(struct brcmstb_gpio_bank *bank)
 static void brcmstb_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct brcmstb_gpio_priv *priv = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct brcmstb_gpio_bank *bank;
 
 	/* Interrupts weren't properly cleared during probe */

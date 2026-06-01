@@ -230,7 +230,7 @@ static struct irq_chip avec_irq_controller = {
 
 static void avecintc_irq_dispatch(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irq_desc *d;
 
 	chained_irq_enter(chip, desc);

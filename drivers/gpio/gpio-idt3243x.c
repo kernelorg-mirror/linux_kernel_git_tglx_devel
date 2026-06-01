@@ -29,7 +29,7 @@ static void idt_gpio_dispatch(struct irq_desc *desc)
 {
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct idt_gpio_ctrl *ctrl = gpiochip_get_data(gc);
-	struct irq_chip *host_chip = irq_desc_get_chip(desc);
+	const struct irq_chip *host_chip = irq_desc_get_chip(desc);
 	unsigned int bit, virq;
 	unsigned long pending;
 

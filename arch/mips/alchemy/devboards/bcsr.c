@@ -91,7 +91,7 @@ EXPORT_SYMBOL_GPL(bcsr_mod);
 static void bcsr_csc_handler(struct irq_desc *d)
 {
 	unsigned short bisr = __raw_readw(bcsr_virt + BCSR_REG_INTSTAT);
-	struct irq_chip *chip = irq_desc_get_chip(d);
+	const struct irq_chip *chip = irq_desc_get_chip(d);
 
 	chained_irq_enter(chip, d);
 	generic_handle_irq(bcsr_csc_base + __ffs(bisr));

@@ -166,7 +166,7 @@ static int sp_intc_get_ext_irq(int ext_num)
 
 static void sp_intc_handle_ext_cascaded(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	int ext_num = (uintptr_t)irq_desc_get_handler_data(desc);
 	int hwirq;
 

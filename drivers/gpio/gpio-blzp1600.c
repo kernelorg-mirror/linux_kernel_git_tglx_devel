@@ -181,7 +181,7 @@ static const struct irq_chip blzp1600_gpio_irqchip = {
 static void blzp1600_gpio_irqhandler(struct irq_desc *desc)
 {
 	struct blzp1600_gpio *gpio = get_blzp1600_gpio_from_irq_desc(desc);
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	unsigned long irq_status;
 	int hwirq = 0;
 

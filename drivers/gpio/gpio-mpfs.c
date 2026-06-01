@@ -181,7 +181,7 @@ static const struct irq_chip mpfs_gpio_irqchip = {
 
 static void mpfs_gpio_irq_handler(struct irq_desc *desc)
 {
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	struct mpfs_gpio_chip *mpfs_gpio = irq_desc_get_handler_data(desc);
 	unsigned long status;
 	u32 val;

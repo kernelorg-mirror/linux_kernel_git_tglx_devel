@@ -101,7 +101,7 @@ static void rp1_chained_handle_irq(struct irq_desc *desc)
 {
 	unsigned int hwirq = desc->irq_data.hwirq & RP1_HW_IRQ_MASK;
 	struct rp1_dev *rp1 = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int virq;
 
 	chained_irq_enter(chip, desc);

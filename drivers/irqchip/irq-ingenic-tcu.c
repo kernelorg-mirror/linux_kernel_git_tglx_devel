@@ -23,7 +23,7 @@ struct ingenic_tcu {
 
 static void ingenic_tcu_intc_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *irq_chip = irq_data_get_irq_chip(&desc->irq_data);
+	const struct irq_chip *irq_chip = irq_data_get_irq_chip(&desc->irq_data);
 	struct irq_domain *domain = irq_desc_get_handler_data(desc);
 	struct irq_chip_generic *gc = irq_get_domain_generic_chip(domain, 0);
 	struct regmap *map = gc->private;

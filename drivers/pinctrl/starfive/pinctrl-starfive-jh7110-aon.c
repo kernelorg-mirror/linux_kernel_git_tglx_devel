@@ -95,7 +95,7 @@ static int jh7110_aon_get_padcfg_base(struct jh7110_pinctrl *sfp,
 static void jh7110_aon_irq_handler(struct irq_desc *desc)
 {
 	struct jh7110_pinctrl *sfp = jh7110_from_irq_desc(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long mis;
 	unsigned int pin;
 

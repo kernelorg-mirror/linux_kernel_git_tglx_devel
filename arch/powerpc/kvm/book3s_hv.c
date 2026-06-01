@@ -5967,7 +5967,7 @@ static int kvmppc_set_passthru_irq(struct kvm *kvm, int host_irq, int guest_gsi)
 	struct irq_desc *desc;
 	struct kvmppc_irq_map *irq_map;
 	struct kvmppc_passthru_irqmap *pimap;
-	struct irq_chip *chip;
+	const struct irq_chip *chip;
 	int i, rc = 0;
 	struct irq_data *host_data;
 

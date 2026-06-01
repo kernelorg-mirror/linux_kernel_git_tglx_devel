@@ -216,7 +216,7 @@ static void irq_set_thread_affinity(struct irq_desc *desc)
 static void irq_validate_effective_affinity(struct irq_data *data)
 {
 	const struct cpumask *m = irq_data_get_effective_affinity_mask(data);
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 
 	if (!cpumask_empty(m))
 		return;
@@ -233,7 +233,7 @@ int irq_do_set_affinity(struct irq_data *data, const struct cpumask *mask, bool 
 {
 	struct cpumask *tmp_mask = this_cpu_ptr(&__tmp_mask);
 	struct irq_desc *desc = irq_data_to_desc(data);
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 	const struct cpumask  *prog_mask;
 	int ret;
 
@@ -376,7 +376,7 @@ void irq_affinity_schedule_notify_work(struct irq_desc *desc)
 int irq_set_affinity_locked(struct irq_data *data, const struct cpumask *mask,
 			    bool force)
 {
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 	struct irq_desc *desc = irq_data_to_desc(data);
 	int ret = 0;
 
@@ -924,7 +924,7 @@ bool can_request_irq(unsigned int irq, unsigned long irqflags)
 
 int __irq_set_trigger(struct irq_desc *desc, unsigned long flags)
 {
-	struct irq_chip *chip = desc->irq_data.chip;
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	int ret, unmask = 0;
 
 	if (!chip || !chip->irq_set_type) {
@@ -2683,7 +2683,7 @@ void teardown_percpu_nmi(unsigned int irq)
 
 static int __irq_get_irqchip_state(struct irq_data *data, enum irqchip_irq_state which, bool *state)
 {
-	struct irq_chip *chip;
+	const struct irq_chip *chip;
 	int err = -EINVAL;
 
 	do {

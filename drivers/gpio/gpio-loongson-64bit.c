@@ -218,7 +218,7 @@ static int loongson_gpio_irq_set_type(struct irq_data *data, unsigned int type)
 static void loongson_gpio_ls2k0300_irq_handler(struct irq_desc *desc)
 {
 	struct loongson_gpio_chip *lgpio = irq_desc_get_handler_data(desc);
-	struct irq_chip *girqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *girqchip = irq_desc_get_chip(desc);
 	int i;
 
 	chained_irq_enter(girqchip, desc);

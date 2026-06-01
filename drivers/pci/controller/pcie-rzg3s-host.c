@@ -523,7 +523,7 @@ static struct pci_ops rzg3s_pcie_root_ops = {
 static void rzg3s_pcie_intx_irq_handler(struct irq_desc *desc)
 {
 	struct rzg3s_pcie_host *host = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int irq = irq_desc_get_irq(desc);
 	u32 intx = irq - host->intx_irqs[0];
 

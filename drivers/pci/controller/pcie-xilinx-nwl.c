@@ -315,7 +315,7 @@ static irqreturn_t nwl_pcie_misc_handler(int irq, void *data)
 
 static void nwl_pcie_leg_handler(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct nwl_pcie *pcie;
 	unsigned long status;
 	u32 bit;
@@ -348,7 +348,7 @@ static void nwl_pcie_handle_msi_irq(struct nwl_pcie *pcie, u32 status_reg)
 
 static void nwl_pcie_msi_handler_high(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct nwl_pcie *pcie = irq_desc_get_handler_data(desc);
 
 	chained_irq_enter(chip, desc);
@@ -358,7 +358,7 @@ static void nwl_pcie_msi_handler_high(struct irq_desc *desc)
 
 static void nwl_pcie_msi_handler_low(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct nwl_pcie *pcie = irq_desc_get_handler_data(desc);
 
 	chained_irq_enter(chip, desc);

@@ -567,7 +567,7 @@ static void sprd_eic_handle_one_type(struct gpio_chip *chip)
 
 static void sprd_eic_irq_handler(struct irq_desc *desc)
 {
-	struct irq_chip *ic = irq_desc_get_chip(desc);
+	const struct irq_chip *ic = irq_desc_get_chip(desc);
 
 	chained_irq_enter(ic, desc);
 

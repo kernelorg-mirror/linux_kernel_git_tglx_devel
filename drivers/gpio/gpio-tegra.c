@@ -380,7 +380,7 @@ static void tegra_gpio_irq_shutdown(struct irq_data *d)
 static void tegra_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct tegra_gpio_info *tgi = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irq_domain *domain = tgi->gc.irq.domain;
 	unsigned int irq = irq_desc_get_irq(desc);
 	struct tegra_gpio_bank *bank = NULL;

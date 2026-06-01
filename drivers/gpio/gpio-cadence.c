@@ -143,7 +143,7 @@ static void cdns_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
 	struct cdns_gpio_chip *cgpio = gpiochip_get_data(chip);
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	unsigned long status;
 	int hwirq;
 

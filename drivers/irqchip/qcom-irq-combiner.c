@@ -47,7 +47,7 @@ static inline int irq_nr(u32 reg, u32 bit)
 static void combiner_handle_irq(struct irq_desc *desc)
 {
 	struct combiner *combiner = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	u32 reg;
 
 	chained_irq_enter(chip, desc);

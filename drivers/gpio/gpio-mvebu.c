@@ -554,7 +554,7 @@ static int mvebu_gpio_irq_set_type(struct irq_data *d, unsigned int type)
 static void mvebu_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct mvebu_gpio_chip *mvchip = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	u32 cause, type, data_in, level_mask, edge_cause, edge_mask;
 	int i;
 

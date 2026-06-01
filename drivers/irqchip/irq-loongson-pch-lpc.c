@@ -107,7 +107,7 @@ static const struct irq_chip pch_lpc_irq_chip = {
 static void lpc_irq_dispatch(struct irq_desc *desc)
 {
 	u32 pending, bit;
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct pch_lpc *priv = irq_desc_get_handler_data(desc);
 
 	chained_irq_enter(chip, desc);

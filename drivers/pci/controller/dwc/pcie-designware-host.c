@@ -87,7 +87,7 @@ void dw_handle_msi_irq(struct dw_pcie_rp *pp)
 /* Chained MSI interrupt service routine */
 static void dw_chained_msi_isr(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct dw_pcie_rp *pp;
 
 	chained_irq_enter(chip, desc);

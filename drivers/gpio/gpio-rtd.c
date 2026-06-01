@@ -378,7 +378,7 @@ static void rtd_gpio_irq_handle(struct irq_desc *desc)
 	int (*get_reg_offset)(struct rtd_gpio *gpio, unsigned int offset);
 	struct rtd_gpio *data = irq_desc_get_handler_data(desc);
 	struct irq_domain *domain = data->gpio_chip.irq.domain;
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int irq = irq_desc_get_irq(desc);
 	unsigned long status;
 	int reg_offset, i, j;

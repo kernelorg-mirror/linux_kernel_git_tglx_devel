@@ -44,7 +44,7 @@ static void sophgo_pcie_writel_app(struct sophgo_pcie *sophgo, u32 val, u32 reg)
 static void sophgo_pcie_intx_handler(struct irq_desc *desc)
 {
 	struct dw_pcie_rp *pp = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
 	struct sophgo_pcie *sophgo = to_sophgo_pcie(pci);
 	unsigned long hwirq, reg;

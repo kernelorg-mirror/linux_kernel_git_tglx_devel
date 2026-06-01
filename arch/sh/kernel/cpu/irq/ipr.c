@@ -23,7 +23,7 @@
 
 static inline struct ipr_desc *get_ipr_desc(struct irq_data *data)
 {
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 	return container_of(chip, struct ipr_desc, chip);
 }
 

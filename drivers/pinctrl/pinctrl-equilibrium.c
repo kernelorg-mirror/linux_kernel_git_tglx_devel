@@ -159,7 +159,7 @@ static void eqbr_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct eqbr_gpio_ctrl *gctrl = gpiochip_get_data(gc);
-	struct irq_chip *ic = irq_desc_get_chip(desc);
+	const struct irq_chip *ic = irq_desc_get_chip(desc);
 	unsigned long pins, offset;
 
 	chained_irq_enter(ic, desc);

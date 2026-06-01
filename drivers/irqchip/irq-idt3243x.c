@@ -27,7 +27,7 @@ struct idt_pic_data {
 static void idt_irq_dispatch(struct irq_desc *desc)
 {
 	struct idt_pic_data *idtpic = irq_desc_get_handler_data(desc);
-	struct irq_chip *host_chip = irq_desc_get_chip(desc);
+	const struct irq_chip *host_chip = irq_desc_get_chip(desc);
 	u32 pending, hwirq;
 
 	chained_irq_enter(host_chip, desc);

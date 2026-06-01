@@ -191,7 +191,7 @@ static const struct irq_domain_ops imx_mu_msi_domain_ops = {
 static void imx_mu_msi_irq_handler(struct irq_desc *desc)
 {
 	struct imx_mu_msi *msi_data = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	u32 status;
 	int i;
 

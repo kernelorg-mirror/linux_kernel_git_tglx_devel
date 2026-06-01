@@ -136,7 +136,7 @@ static void econet_intc_handle_pending(struct irq_domain *d, u32 pending, u32 of
 
 static void econet_intc_from_parent(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irq_domain *domain;
 	u32 pending0, pending1;
 

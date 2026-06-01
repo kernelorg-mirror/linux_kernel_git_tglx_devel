@@ -417,7 +417,7 @@ static const struct irq_domain_ops s3c64xx_gpio_irqd_ops = {
 
 static void s3c64xx_eint_gpio_irq(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct s3c64xx_eint_gpio_data *data = irq_desc_get_handler_data(desc);
 	struct samsung_pinctrl_drv_data *drvdata = data->drvdata;
 
@@ -604,7 +604,7 @@ static struct irq_chip s3c64xx_eint0_irq_chip = {
 
 static inline void s3c64xx_irq_demux_eint(struct irq_desc *desc, u32 range)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct s3c64xx_eint0_data *data = irq_desc_get_handler_data(desc);
 	struct samsung_pinctrl_drv_data *drvdata = data->drvdata;
 	unsigned int pend, mask;

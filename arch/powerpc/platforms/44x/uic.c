@@ -195,7 +195,7 @@ static const struct irq_domain_ops uic_host_ops = {
 
 static void uic_irq_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irq_data *idata = irq_desc_get_irq_data(desc);
 	struct uic *uic = irq_desc_get_handler_data(desc);
 	u32 msr;

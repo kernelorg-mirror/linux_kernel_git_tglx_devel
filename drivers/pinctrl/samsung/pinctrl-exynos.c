@@ -57,7 +57,7 @@ static inline struct exynos_irq_chip *to_exynos_irq_chip(const struct irq_chip *
 
 static void exynos_irq_mask(struct irq_data *irqd)
 {
-	struct irq_chip *chip = irq_data_get_irq_chip(irqd);
+	const struct irq_chip *chip = irq_data_get_irq_chip(irqd);
 	struct exynos_irq_chip *our_chip = to_exynos_irq_chip(chip);
 	struct samsung_pin_bank *bank = irq_data_get_irq_chip_data(irqd);
 	unsigned long reg_mask;
@@ -88,7 +88,7 @@ static void exynos_irq_mask(struct irq_data *irqd)
 
 static void exynos_irq_ack(struct irq_data *irqd)
 {
-	struct irq_chip *chip = irq_data_get_irq_chip(irqd);
+	const struct irq_chip *chip = irq_data_get_irq_chip(irqd);
 	struct exynos_irq_chip *our_chip = to_exynos_irq_chip(chip);
 	struct samsung_pin_bank *bank = irq_data_get_irq_chip_data(irqd);
 	unsigned long reg_pend;
@@ -111,7 +111,7 @@ static void exynos_irq_ack(struct irq_data *irqd)
 
 static void exynos_irq_unmask(struct irq_data *irqd)
 {
-	struct irq_chip *chip = irq_data_get_irq_chip(irqd);
+	const struct irq_chip *chip = irq_data_get_irq_chip(irqd);
 	struct exynos_irq_chip *our_chip = to_exynos_irq_chip(chip);
 	struct samsung_pin_bank *bank = irq_data_get_irq_chip_data(irqd);
 	unsigned long reg_mask;
@@ -153,7 +153,7 @@ static void exynos_irq_unmask(struct irq_data *irqd)
 
 static int exynos_irq_set_type(struct irq_data *irqd, unsigned int type)
 {
-	struct irq_chip *chip = irq_data_get_irq_chip(irqd);
+	const struct irq_chip *chip = irq_data_get_irq_chip(irqd);
 	struct exynos_irq_chip *our_chip = to_exynos_irq_chip(chip);
 	struct samsung_pin_bank *bank = irq_data_get_irq_chip_data(irqd);
 	unsigned int shift = EXYNOS_EINT_CON_LEN * irqd->hwirq;
@@ -697,7 +697,7 @@ static void exynos_irq_eint0_15(struct irq_desc *desc)
 {
 	struct exynos_weint_data *eintd = irq_desc_get_handler_data(desc);
 	struct samsung_pin_bank *bank = eintd->bank;
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	chained_irq_enter(chip, desc);
 
@@ -721,7 +721,7 @@ static inline void exynos_irq_demux_eint(unsigned int pend,
 /* interrupt handler for wakeup interrupt 16 */
 static void exynos_irq_demux_eint16_31(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct exynos_muxed_weint_data *eintd = irq_desc_get_handler_data(desc);
 	unsigned int pend;
 	unsigned int mask;

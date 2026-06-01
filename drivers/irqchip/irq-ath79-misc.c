@@ -34,7 +34,7 @@ EXPORT_SYMBOL_GPL(get_c0_perfcount_int);
 static void ath79_misc_irq_handler(struct irq_desc *desc)
 {
 	struct irq_domain *domain = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	void __iomem *base = domain->host_data;
 	u32 pending;
 

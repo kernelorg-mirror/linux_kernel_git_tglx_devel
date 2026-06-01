@@ -66,7 +66,7 @@ static inline bool scu_has_split_isr(struct aspeed_scu_ic *scu)
 static void aspeed_scu_ic_irq_handler_combined(struct irq_desc *desc)
 {
 	struct aspeed_scu_ic *scu_ic = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long bit, enabled, max, status;
 	unsigned int sts, mask;
 
@@ -102,7 +102,7 @@ static void aspeed_scu_ic_irq_handler_combined(struct irq_desc *desc)
 static void aspeed_scu_ic_irq_handler_split(struct irq_desc *desc)
 {
 	struct aspeed_scu_ic *scu_ic = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long bit, enabled, max, status;
 	unsigned int sts;
 

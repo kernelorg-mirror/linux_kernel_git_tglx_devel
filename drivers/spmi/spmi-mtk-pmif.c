@@ -474,7 +474,7 @@ static int pmif_spmi_write_cmd(struct spmi_controller *ctrl, u8 opc, u8 sid,
 static void mtk_spmi_handle_chained_irq(struct irq_desc *desc)
 {
 	struct pmif_bus *pbus = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct pmif *arb = to_mtk_pmif(pbus->ctrl);
 	u8 regidx_min, regidx_max;
 	bool irq_handled = false;

@@ -99,7 +99,7 @@ static void al_fic_irq_handler(struct irq_desc *desc)
 {
 	struct al_fic *fic = irq_desc_get_handler_data(desc);
 	struct irq_domain *domain = fic->domain;
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	struct irq_chip_generic *gc = irq_get_domain_generic_chip(domain, 0);
 	unsigned long pending;
 	u32 hwirq;

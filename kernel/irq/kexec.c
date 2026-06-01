@@ -13,7 +13,7 @@ void machine_kexec_mask_interrupts(void)
 	unsigned int i;
 
 	for_each_irq_desc(i, desc) {
-		struct irq_chip *chip;
+		const struct irq_chip *chip;
 		int check_eoi = 1;
 
 		chip = irq_desc_get_chip(desc);

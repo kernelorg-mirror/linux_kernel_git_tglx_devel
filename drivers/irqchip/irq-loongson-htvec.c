@@ -41,7 +41,7 @@ static void htvec_irq_dispatch(struct irq_desc *desc)
 	int i;
 	u32 pending;
 	bool handled = false;
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct htvec *priv = irq_desc_get_handler_data(desc);
 
 	chained_irq_enter(chip, desc);

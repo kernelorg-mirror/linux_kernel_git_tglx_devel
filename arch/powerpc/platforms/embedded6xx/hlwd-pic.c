@@ -120,7 +120,7 @@ static unsigned int __hlwd_pic_get_irq(struct irq_domain *h)
 
 static void hlwd_pic_irq_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irq_domain *irq_domain = irq_desc_get_handler_data(desc);
 	unsigned int hwirq;
 

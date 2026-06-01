@@ -49,7 +49,7 @@ void irq_move_masked_irq(struct irq_data *idata)
 {
 	struct irq_desc *desc = irq_data_to_desc(idata);
 	struct irq_data *data = &desc->irq_data;
-	struct irq_chip *chip = data->chip;
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 
 	if (likely(!irqd_is_setaffinity_pending(data)))
 		return;

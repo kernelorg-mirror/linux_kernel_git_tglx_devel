@@ -597,7 +597,7 @@ static int mtk_pcie_init_irq_domain(struct mtk_pcie_port *port,
 static void mtk_pcie_intr_handler(struct irq_desc *desc)
 {
 	struct mtk_pcie_port *port = irq_desc_get_handler_data(desc);
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	unsigned long status;
 	u32 bit = INTX_SHIFT;
 

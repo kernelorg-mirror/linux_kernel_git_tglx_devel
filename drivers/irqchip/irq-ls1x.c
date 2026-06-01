@@ -37,7 +37,7 @@ struct ls1x_intc_priv {
 static void ls1x_chained_handle_irq(struct irq_desc *desc)
 {
 	struct ls1x_intc_priv *priv = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	u32 pending;
 
 	chained_irq_enter(chip, desc);

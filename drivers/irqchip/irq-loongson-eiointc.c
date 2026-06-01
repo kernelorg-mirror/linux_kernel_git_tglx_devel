@@ -308,7 +308,7 @@ static inline void write_isr(int i, unsigned long val)
 static void eiointc_irq_dispatch(struct irq_desc *desc)
 {
 	struct eiointc_ip_route *info = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long pending;
 	bool handled = false;
 	int i;

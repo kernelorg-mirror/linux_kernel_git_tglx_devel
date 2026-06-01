@@ -184,7 +184,7 @@ static void hisi_gpio_irq_handler(struct irq_desc *desc)
 	struct hisi_gpio *hisi_gpio = irq_desc_get_handler_data(desc);
 	unsigned long irq_msk = hisi_gpio_read_reg(&hisi_gpio->chip.gc,
 						   HISI_GPIO_INTSTATUS_WX);
-	struct irq_chip *irq_c = irq_desc_get_chip(desc);
+	const struct irq_chip *irq_c = irq_desc_get_chip(desc);
 	int hwirq;
 
 	chained_irq_enter(irq_c, desc);

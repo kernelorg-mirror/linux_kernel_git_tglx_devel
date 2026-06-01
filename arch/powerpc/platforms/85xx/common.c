@@ -52,7 +52,7 @@ int __init mpc85xx_common_publish_devices(void)
 #ifdef CONFIG_CPM2
 static void cpm2_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	int cascade_irq;
 
 	while ((cascade_irq = cpm2_get_irq()) >= 0)

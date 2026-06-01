@@ -33,7 +33,7 @@ struct goldfish_pic_data {
 static void goldfish_pic_cascade(struct irq_desc *desc)
 {
 	struct goldfish_pic_data *gfpic = irq_desc_get_handler_data(desc);
-	struct irq_chip *host_chip = irq_desc_get_chip(desc);
+	const struct irq_chip *host_chip = irq_desc_get_chip(desc);
 	u32 pending, hwirq;
 
 	chained_irq_enter(host_chip, desc);

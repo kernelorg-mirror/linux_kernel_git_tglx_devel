@@ -374,7 +374,7 @@ static void __exception_irq_entry gic_handle_irq(struct pt_regs *regs)
 static void gic_handle_cascade_irq(struct irq_desc *desc)
 {
 	struct gic_chip_data *chip_data = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int gic_irq;
 	unsigned long status;
 	int ret;

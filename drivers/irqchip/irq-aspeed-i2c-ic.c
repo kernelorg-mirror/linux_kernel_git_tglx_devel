@@ -32,7 +32,7 @@ struct aspeed_i2c_ic {
 static void aspeed_i2c_ic_irq_handler(struct irq_desc *desc)
 {
 	struct aspeed_i2c_ic *i2c_ic = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long bit, status;
 
 	chained_irq_enter(chip, desc);

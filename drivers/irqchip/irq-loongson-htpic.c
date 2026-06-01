@@ -29,7 +29,7 @@ static struct loongson_htpic *htpic;
 static void htpic_irq_dispatch(struct irq_desc *desc)
 {
 	struct loongson_htpic *priv = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	uint32_t pending;
 
 	chained_irq_enter(chip, desc);

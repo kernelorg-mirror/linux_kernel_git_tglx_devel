@@ -404,7 +404,7 @@ static int intc_suspend(void *data)
 		/* enable wakeup irqs belonging to this intc controller */
 		for_each_active_irq(irq) {
 			struct irq_data *data;
-			struct irq_chip *chip;
+			const struct irq_chip *chip;
 
 			data = irq_get_irq_data(irq);
 			chip = irq_data_get_irq_chip(data);
@@ -429,7 +429,7 @@ static void intc_resume(void *data)
 
 		for_each_active_irq(irq) {
 			struct irq_data *data;
-			struct irq_chip *chip;
+			const struct irq_chip *chip;
 
 			data = irq_get_irq_data(irq);
 			chip = irq_data_get_irq_chip(data);

@@ -554,7 +554,7 @@ static void lp_gpio_irq_handler(struct irq_desc *desc)
 	struct irq_data *data = irq_desc_get_irq_data(desc);
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct intel_pinctrl *lg = gpiochip_get_data(gc);
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 	void __iomem *reg, *ena;
 	unsigned long pending;
 	u32 base, pin;

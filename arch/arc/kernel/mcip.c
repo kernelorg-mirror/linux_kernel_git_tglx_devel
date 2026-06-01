@@ -345,7 +345,7 @@ static struct irq_chip idu_irq_chip = {
 static void idu_cascade_isr(struct irq_desc *desc)
 {
 	struct irq_domain *idu_domain = irq_desc_get_handler_data(desc);
-	struct irq_chip *core_chip = irq_desc_get_chip(desc);
+	const struct irq_chip *core_chip = irq_desc_get_chip(desc);
 	irq_hw_number_t core_hwirq = irqd_to_hwirq(irq_desc_get_irq_data(desc));
 	irq_hw_number_t idu_hwirq = core_hwirq - FIRST_EXT_IRQ;
 

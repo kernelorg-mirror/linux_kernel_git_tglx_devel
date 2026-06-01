@@ -177,7 +177,7 @@ static void altera_gpio_irq_edge_handler(struct irq_desc *desc)
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct altera_gpio_chip *altera_gc = gpiochip_get_data(gc);
 	struct irq_domain *irqdomain = gc->irq.domain;
-	struct irq_chip *chip;
+	const struct irq_chip *chip;
 	unsigned long status;
 	int i;
 
@@ -201,7 +201,7 @@ static void altera_gpio_irq_leveL_high_handler(struct irq_desc *desc)
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	struct altera_gpio_chip *altera_gc = gpiochip_get_data(gc);
 	struct irq_domain *irqdomain = gc->irq.domain;
-	struct irq_chip *chip;
+	const struct irq_chip *chip;
 	unsigned long status;
 	int i;
 

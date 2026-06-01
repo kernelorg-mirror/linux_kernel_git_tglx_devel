@@ -71,7 +71,7 @@ struct fwnode_handle *liointc_handle;
 static void liointc_chained_handle_irq(struct irq_desc *desc)
 {
 	struct liointc_handler_data *handler = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct irq_chip_generic *gc = handler->priv->gc;
 	int core = liointc_core_id % LIOINTC_NUM_CORES;
 	u32 pending;

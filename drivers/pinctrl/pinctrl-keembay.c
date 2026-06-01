@@ -1247,7 +1247,7 @@ static void keembay_gpio_irq_handler(struct irq_desc *desc)
 	struct gpio_chip *gc = irq_desc_get_handler_data(desc);
 	unsigned int kmb_irq = irq_desc_get_irq(desc);
 	unsigned long reg, clump = 0, bit = 0;
-	struct irq_chip *parent_chip;
+	const struct irq_chip *parent_chip;
 	struct keembay_pinctrl *kpc;
 	unsigned int src, pin, val;
 

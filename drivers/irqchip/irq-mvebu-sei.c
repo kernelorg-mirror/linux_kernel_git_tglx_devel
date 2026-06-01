@@ -313,7 +313,7 @@ static const struct irq_domain_ops mvebu_sei_cp_domain_ops = {
 static void mvebu_sei_handle_cascade_irq(struct irq_desc *desc)
 {
 	struct mvebu_sei *sei = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	u32 idx;
 
 	chained_irq_enter(chip, desc);

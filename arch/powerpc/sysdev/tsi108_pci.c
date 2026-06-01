@@ -416,7 +416,7 @@ void __init tsi108_pci_int_init(struct device_node *node)
 
 void tsi108_irq_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int cascade_irq = get_pci_source();
 
 	if (cascade_irq)

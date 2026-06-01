@@ -2197,7 +2197,7 @@ static void ocelot_irq_mask(struct irq_data *data)
 static void ocelot_irq_work(struct work_struct *work)
 {
 	struct ocelot_irq_work *w = container_of(work, struct ocelot_irq_work, irq_work);
-	struct irq_chip *parent_chip = irq_desc_get_chip(w->irq_desc);
+	const struct irq_chip *parent_chip = irq_desc_get_chip(w->irq_desc);
 	struct gpio_chip *chip = irq_desc_get_chip_data(w->irq_desc);
 	struct irq_data *data = irq_desc_get_irq_data(w->irq_desc);
 	unsigned int gpio = irqd_to_hwirq(data);
@@ -2329,7 +2329,7 @@ static int ocelot_irq_set_type(struct irq_data *data, unsigned int type)
 
 static void ocelot_irq_handler(struct irq_desc *desc)
 {
-	struct irq_chip *parent_chip = irq_desc_get_chip(desc);
+	const struct irq_chip *parent_chip = irq_desc_get_chip(desc);
 	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
 	struct ocelot_pinctrl *info = gpiochip_get_data(chip);
 	unsigned int id_reg = OCELOT_GPIO_INTR_IDENT * info->stride;

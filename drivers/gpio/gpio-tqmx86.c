@@ -226,7 +226,7 @@ static void tqmx86_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
 	struct tqmx86_gpio_data *gpio = gpiochip_get_data(chip);
-	struct irq_chip *irq_chip = irq_desc_get_chip(desc);
+	const struct irq_chip *irq_chip = irq_desc_get_chip(desc);
 	unsigned long irq_bits;
 	int i, hwirq;
 	u8 irq_status;

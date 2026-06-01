@@ -139,7 +139,7 @@ static void aplic_direct_handle_irq(struct irq_desc *desc)
 {
 	struct aplic_idc *idc = this_cpu_ptr(&aplic_idcs);
 	struct irq_domain *irqdomain = idc->direct->irqdomain;
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	irq_hw_number_t hw_irq;
 	int irq;
 

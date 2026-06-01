@@ -861,7 +861,7 @@ static const struct gpio_chip rp1_gpio_chip = {
 static void rp1_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct gpio_chip *chip = irq_desc_get_handler_data(desc);
-	struct irq_chip *host_chip = irq_desc_get_chip(desc);
+	const struct irq_chip *host_chip = irq_desc_get_chip(desc);
 	struct rp1_pinctrl *pc = gpiochip_get_data(chip);
 	const struct rp1_iobank_desc *bank;
 	int irq = irq_desc_get_irq(desc);

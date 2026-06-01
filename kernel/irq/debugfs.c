@@ -59,7 +59,7 @@ static const struct irq_bit_descr irqchip_flags[] = {
 static void
 irq_debug_show_chip(struct seq_file *m, struct irq_data *data, int ind)
 {
-	struct irq_chip *chip = data->chip;
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 
 	if (!chip) {
 		seq_printf(m, "chip: None\n");

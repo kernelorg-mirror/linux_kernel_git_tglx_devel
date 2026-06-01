@@ -58,7 +58,7 @@ static void clint_clear_ipi(void)
 
 static void clint_ipi_interrupt(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	chained_irq_enter(chip, desc);
 

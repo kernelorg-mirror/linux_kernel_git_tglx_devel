@@ -172,7 +172,7 @@ static const struct irq_domain_ops starfive_intc_domain_ops = {
 static void starfive_intc_irq_handler(struct irq_desc *desc)
 {
 	struct starfive_irq_chip *irqc = irq_data_get_irq_handler_data(&desc->irq_data);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned long value;
 	int hwirq;
 

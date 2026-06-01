@@ -130,7 +130,7 @@ static void lan966x_oic_irq_handler_domain(struct irq_domain *d, u32 first_irq)
 static void lan966x_oic_irq_handler(struct irq_desc *desc)
 {
 	struct irq_domain *d = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 
 	chained_irq_enter(chip, desc);
 	lan966x_oic_irq_handler_domain(d, 0);

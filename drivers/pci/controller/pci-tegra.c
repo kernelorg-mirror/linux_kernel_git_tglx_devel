@@ -1534,7 +1534,7 @@ static void tegra_pcie_pme_turnoff(struct tegra_pcie_port *port)
 static void tegra_pcie_msi_irq(struct irq_desc *desc)
 {
 	struct tegra_pcie *pcie = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct tegra_msi *msi = &pcie->msi;
 	struct device *dev = pcie->dev;
 	unsigned int i;

@@ -95,7 +95,7 @@ static int gef_pic_cascade_irq;
 
 static void gef_pic_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	unsigned int cascade_irq;
 
 	/*

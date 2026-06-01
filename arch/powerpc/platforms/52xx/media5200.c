@@ -78,7 +78,7 @@ static struct irq_chip media5200_irq_chip = {
 
 static void media5200_irq_cascade(struct irq_desc *desc)
 {
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	int val;
 	u32 status, enable;
 

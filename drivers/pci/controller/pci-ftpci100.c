@@ -289,7 +289,7 @@ static void faraday_pci_unmask_irq(struct irq_data *d)
 static void faraday_pci_irq_handler(struct irq_desc *desc)
 {
 	struct faraday_pci *p = irq_desc_get_handler_data(desc);
-	struct irq_chip *irqchip = irq_desc_get_chip(desc);
+	const struct irq_chip *irqchip = irq_desc_get_chip(desc);
 	unsigned int irq_stat, reg, i;
 
 	faraday_raw_pci_read_config(p, 0, 0, FARADAY_PCI_CTRL2, 4, &reg);

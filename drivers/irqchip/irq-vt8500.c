@@ -189,7 +189,7 @@ static void __exception_irq_entry vt8500_handle_irq(struct pt_regs *regs)
 static void vt8500_handle_irq_chained(struct irq_desc *desc)
 {
 	struct irq_domain *d = irq_desc_get_handler_data(desc);
-	struct irq_chip *chip = irq_desc_get_chip(desc);
+	const struct irq_chip *chip = irq_desc_get_chip(desc);
 	struct vt8500_irq_data *intc = d->host_data;
 
 	chained_irq_enter(chip, desc);

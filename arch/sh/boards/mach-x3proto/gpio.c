@@ -60,7 +60,7 @@ static int x3proto_gpio_to_irq(struct gpio_chip *chip, unsigned gpio)
 static void x3proto_gpio_irq_handler(struct irq_desc *desc)
 {
 	struct irq_data *data = irq_desc_get_irq_data(desc);
-	struct irq_chip *chip = irq_data_get_irq_chip(data);
+	const struct irq_chip *chip = irq_data_get_irq_chip(data);
 	unsigned long mask;
 	int pin;
 

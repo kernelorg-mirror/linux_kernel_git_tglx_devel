@@ -196,7 +196,7 @@ void xics_migrate_irqs_away(void)
 	xics_set_cpu_giq(xics_default_distrib_server, 0);
 
 	for_each_irq_desc(virq, desc) {
-		struct irq_chip *chip;
+		const struct irq_chip *chip;
 		long server;
 		unsigned long flags;
 		struct irq_data *irqd;
