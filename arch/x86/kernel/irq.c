@@ -522,7 +522,7 @@ void fixup_irqs(void)
 	unsigned int vector;
 	struct irq_desc *desc;
 	struct irq_data *data;
-	struct irq_chip *chip;
+	const struct irq_chip *chip;
 
 	irq_migrate_all_off_this_cpu();
 
