@@ -183,7 +183,7 @@ struct irq_data {
 	unsigned int		irq;
 	irq_hw_number_t		hwirq;
 	struct irq_common_data	*common;
-	struct irq_chip		*chip;
+	const struct irq_chip	*chip;
 	struct irq_domain	*domain;
 #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
 	struct irq_data		*parent_data;
@@ -817,13 +817,13 @@ extern int irq_set_msi_desc_off(unsigned int irq_base, unsigned int irq_offset,
 				struct msi_desc *entry);
 extern struct irq_data *irq_get_irq_data(unsigned int irq);
 
-static inline struct irq_chip *irq_get_chip(unsigned int irq)
+static inline const struct irq_chip *irq_get_chip(unsigned int irq)
 {
 	struct irq_data *d = irq_get_irq_data(irq);
 	return d ? d->chip : NULL;
 }
 
-static inline struct irq_chip *irq_data_get_irq_chip(struct irq_data *d)
+static inline const struct irq_chip *irq_data_get_irq_chip(struct irq_data *d)
 {
 	return d->chip;
 }

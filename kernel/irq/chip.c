@@ -45,7 +45,7 @@ int irq_set_chip(unsigned int irq, const struct irq_chip *chip)
 	int ret = -EINVAL;
 
 	scoped_irqdesc_get_and_lock(irq, 0) {
-		scoped_irqdesc->irq_data.chip = (struct irq_chip *)(chip ?: &no_irq_chip);
+		scoped_irqdesc->irq_data.chip = chip ?: &no_irq_chip;
 		ret = 0;
 	}
 	/* For !CONFIG_SPARSE_IRQ make the irq show up in allocated_irqs. */

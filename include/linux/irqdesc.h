@@ -162,7 +162,7 @@ static inline struct irq_data *irq_desc_get_irq_data(struct irq_desc *desc)
 	return &desc->irq_data;
 }
 
-static inline struct irq_chip *irq_desc_get_chip(struct irq_desc *desc)
+static inline const struct irq_chip *irq_desc_get_chip(struct irq_desc *desc)
 {
 	return desc->irq_data.chip;
 }
@@ -247,7 +247,7 @@ irq_set_chip_handler_name_locked(struct irq_data *data,
 
 	desc->handle_irq = handler;
 	desc->name = name;
-	data->chip = (struct irq_chip *)chip;
+	data->chip = chip;
 }
 
 bool irq_check_status_bit(unsigned int irq, unsigned int bitmask);
