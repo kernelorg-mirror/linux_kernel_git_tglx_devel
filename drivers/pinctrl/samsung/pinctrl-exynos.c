@@ -50,7 +50,7 @@ static u32 eint_wake_mask_values[MAX_WAKEUP_REG] = { EXYNOS_EINT_WAKEUP_MASK_DIS
 						     EXYNOS_EINT_WAKEUP_MASK_DISABLED,
 						     EXYNOS_EINT_WAKEUP_MASK_DISABLED};
 
-static inline struct exynos_irq_chip *to_exynos_irq_chip(struct irq_chip *chip)
+static inline struct exynos_irq_chip *to_exynos_irq_chip(const struct irq_chip *chip)
 {
 	return container_of(chip, struct exynos_irq_chip, chip);
 }
