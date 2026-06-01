@@ -699,7 +699,8 @@ void handle_level_irq(struct irq_desc *desc)
 }
 EXPORT_SYMBOL_GPL(handle_level_irq);
 
-static void cond_unmask_eoi_irq(struct irq_desc *desc, struct irq_chip *chip)
+static void cond_unmask_eoi_irq(struct irq_desc *desc,
+				const struct irq_chip *chip)
 {
 	if (!(desc->istate & IRQS_ONESHOT)) {
 		chip->irq_eoi(&desc->irq_data);
@@ -720,7 +721,7 @@ static void cond_unmask_eoi_irq(struct irq_desc *desc, struct irq_chip *chip)
 	}
 }
 
-static inline void cond_eoi_irq(struct irq_chip *chip, struct irq_data *data)
+static inline void cond_eoi_irq(const struct irq_chip *chip, struct irq_data *data)
 {
 	if (!(chip->flags & IRQCHIP_EOI_IF_HANDLED))
 		chip->irq_eoi(data);
