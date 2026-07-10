@@ -21,4 +21,12 @@
 #endif
 #endif
 
+#ifndef __ASSEMBLER__
+#include <vdso/page.h>
+
+#include <asm/cpuinfo.h>
+
+#define cache_line_size()	(boot_cpu_data.x86_cache_alignment)
+
+#endif /* __ASSEMBLER__ */
 #endif /* _ASM_X86_CACHE_H */
