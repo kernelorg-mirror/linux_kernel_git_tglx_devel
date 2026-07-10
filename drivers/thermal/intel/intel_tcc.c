@@ -6,6 +6,7 @@
 
 #include <linux/errno.h>
 #include <linux/intel_tcc.h>
+#include <linux/string.h>
 #include <asm/cpu_device_id.h>
 #include <asm/intel-family.h>
 #include <asm/msr.h>
