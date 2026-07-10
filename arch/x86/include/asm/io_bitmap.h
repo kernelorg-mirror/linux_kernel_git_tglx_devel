@@ -3,7 +3,8 @@
 #define _ASM_X86_IOBITMAP_H
 
 #include <linux/refcount.h>
-#include <asm/processor.h>
+
+#include <asm/io_bitmap_defs.h>
 
 struct io_bitmap {
 	u64		sequence;

@@ -10,33 +10,34 @@ struct mm_struct;
 struct io_bitmap;
 struct vm86;
 
-#include <asm/math_emu.h>
-#include <asm/segment.h>
-#include <asm/types.h>
-#include <uapi/asm/sigcontext.h>
-#include <asm/current.h>
 #include <asm/cpufeatures.h>
 #include <asm/cpuid/types.h>
 #include <asm/cpuinfo.h>
-#include <asm/page.h>
-#include <asm/pgtable_types.h>
-#include <asm/percpu.h>
+#include <asm/current.h>
 #include <asm/desc_defs.h>
-#include <asm/nops.h>
-#include <asm/special_insns.h>
 #include <asm/fpu/types.h>
-#include <asm/unwind_hints.h>
-#include <asm/vmxfeatures.h>
-#include <asm/vdso/processor.h>
+#include <asm/io_bitmap_defs.h>
+#include <asm/math_emu.h>
+#include <asm/nops.h>
+#include <asm/page.h>
+#include <asm/percpu.h>
+#include <asm/pgtable_types.h>
+#include <asm/segment.h>
 #include <asm/shstk.h>
+#include <asm/special_insns.h>
+#include <asm/types.h>
+#include <asm/unwind_hints.h>
+#include <asm/vdso/processor.h>
+#include <asm/vmxfeatures.h>
+#include <uapi/asm/sigcontext.h>
 
-#include <linux/personality.h>
 #include <linux/cache.h>
-#include <linux/threads.h>
-#include <linux/math64.h>
 #include <linux/err.h>
 #include <linux/irqflags.h>
+#include <linux/math64.h>
 #include <linux/mem_encrypt.h>
+#include <linux/personality.h>
+#include <linux/threads.h>
 
 /*
  * We handle most unaligned accesses in hardware.  On the other hand
@@ -169,37 +170,6 @@ struct x86_hw_tss {
 
 } __attribute__((packed));
 #endif
-
-/*
- * IO-bitmap sizes:
- */
-#define IO_BITMAP_BITS			65536
-#define IO_BITMAP_BYTES			(IO_BITMAP_BITS / BITS_PER_BYTE)
-#define IO_BITMAP_LONGS			(IO_BITMAP_BYTES / sizeof(long))
-
-#define IO_BITMAP_OFFSET_VALID_MAP				\
-	(offsetof(struct tss_struct, io_bitmap.bitmap) -	\
-	 offsetof(struct tss_struct, x86_tss))
-
-#define IO_BITMAP_OFFSET_VALID_ALL				\
-	(offsetof(struct tss_struct, io_bitmap.mapall) -	\
-	 offsetof(struct tss_struct, x86_tss))
-
-#ifdef CONFIG_X86_IOPL_IOPERM
-/*
- * sizeof(unsigned long) coming from an extra "long" at the end of the
- * iobitmap. The limit is inclusive, i.e. the last valid byte.
- */
-# define __KERNEL_TSS_LIMIT	\
-	(IO_BITMAP_OFFSET_VALID_ALL + IO_BITMAP_BYTES + \
-	 sizeof(unsigned long) - 1)
-#else
-# define __KERNEL_TSS_LIMIT	\
-	(offsetof(struct tss_struct, x86_tss) + sizeof(struct x86_hw_tss) - 1)
-#endif
-
-/* Base offset outside of TSS_LIMIT so unpriviledged IO causes #GP */
-#define IO_BITMAP_OFFSET_INVALID	(__KERNEL_TSS_LIMIT + 1)
 
 struct entry_stack {
 	char	stack[PAGE_SIZE];
