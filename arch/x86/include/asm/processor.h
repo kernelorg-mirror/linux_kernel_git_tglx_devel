@@ -78,24 +78,6 @@ static inline unsigned long long l1tf_pfn_limit(void)
 }
 
 /*
- * Friendlier CR3 helpers.
- */
-static inline unsigned long read_cr3_pa(void)
-{
-	return __read_cr3() & CR3_ADDR_MASK;
-}
-
-static inline unsigned long native_read_cr3_pa(void)
-{
-	return __native_read_cr3() & CR3_ADDR_MASK;
-}
-
-static inline void load_cr3(pgd_t *pgdir)
-{
-	write_cr3(__sme_pa(pgdir));
-}
-
-/*
  * Note that while the legacy 'TSS' name comes from 'Task State Segment',
  * on modern x86 CPUs the TSS also holds information important to 64-bit mode,
  * unrelated to the task-switch mechanism:

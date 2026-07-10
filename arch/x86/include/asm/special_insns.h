@@ -3,6 +3,7 @@
 #define _ASM_X86_SPECIAL_INSNS_H
 
 #ifdef __KERNEL__
+#include <asm/mem_encrypt.h>
 #include <asm/nops.h>
 #include <asm/processor-flags.h>
 
@@ -181,6 +182,21 @@ static inline void __write_cr4(unsigned long x)
 	native_write_cr4(x);
 }
 #endif /* CONFIG_PARAVIRT_XXL */
+
+static inline unsigned long read_cr3_pa(void)
+{
+	return __read_cr3() & CR3_ADDR_MASK;
+}
+
+static inline unsigned long native_read_cr3_pa(void)
+{
+	return __native_read_cr3() & CR3_ADDR_MASK;
+}
+
+static inline void load_cr3(pgd_t *pgdir)
+{
+	write_cr3(__sme_pa(pgdir));
+}
 
 static __always_inline void clflush(volatile void *__p)
 {
