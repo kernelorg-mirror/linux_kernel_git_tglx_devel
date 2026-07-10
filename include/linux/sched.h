@@ -34,6 +34,7 @@
 #include <linux/resource.h>
 #include <linux/latencytop.h>
 #include <linux/sched/prio.h>
+#include <linux/sched/schedule.h>
 #include <linux/sched/types.h>
 #include <linux/signal_types.h>
 #include <linux/spinlock.h>
@@ -327,25 +328,6 @@ enum {
 };
 
 extern void sched_tick(void);
-
-#define	MAX_SCHEDULE_TIMEOUT		LONG_MAX
-
-extern long schedule_timeout(long timeout);
-extern long schedule_timeout_interruptible(long timeout);
-extern long schedule_timeout_killable(long timeout);
-extern long schedule_timeout_uninterruptible(long timeout);
-extern long schedule_timeout_idle(long timeout);
-asmlinkage void schedule(void);
-extern void schedule_preempt_disabled(void);
-asmlinkage void preempt_schedule_irq(void);
-#ifdef CONFIG_PREEMPT_RT
- extern void schedule_rtlock(void);
-#endif
-
-extern int __must_check io_schedule_prepare(void);
-extern void io_schedule_finish(int token);
-extern long io_schedule_timeout(long timeout);
-extern void io_schedule(void);
 
 /* wrapper functions to trace from this header file */
 DECLARE_TRACEPOINT(sched_set_state_tp);
