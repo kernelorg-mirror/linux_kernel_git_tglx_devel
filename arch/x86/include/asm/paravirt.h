@@ -16,8 +16,9 @@
 
 #ifndef __ASSEMBLER__
 #include <linux/types.h>
-#include <linux/cpumask.h>
 #include <asm/frame.h>
+
+struct cpumask;
 
 void native_flush_tlb_local(void);
 void native_flush_tlb_global(void);
