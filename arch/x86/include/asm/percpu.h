@@ -2,13 +2,7 @@
 #ifndef _ASM_X86_PERCPU_H
 #define _ASM_X86_PERCPU_H
 
-#ifdef CONFIG_X86_64
-# define __percpu_seg		gs
-# define __percpu_rel		(%rip)
-#else
-# define __percpu_seg		fs
-# define __percpu_rel
-#endif
+#include <asm/percpu_seg.h>
 
 #ifdef __ASSEMBLER__
 

@@ -2,6 +2,9 @@
 #ifndef _ASM_X86_PERCPU_TYPES_H
 #define _ASM_X86_PERCPU_TYPES_H
 
+#include <linux/args.h>
+#include <asm/percpu_seg.h>
+
 #if defined(CONFIG_SMP) && defined(CONFIG_CC_HAS_NAMED_AS)
 #define __percpu_seg_override	CONCATENATE(__seg_, __percpu_seg)
 #else /* !CONFIG_CC_HAS_NAMED_AS: */
