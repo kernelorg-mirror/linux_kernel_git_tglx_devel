@@ -9,7 +9,6 @@
 
 #include <asm/asm.h>
 #include <asm/errno.h>
-#include <asm/processor.h>
 #include <asm/smap.h>
 
 #define unsafe_atomic_op1(insn, oval, uaddr, oparg, label)	\

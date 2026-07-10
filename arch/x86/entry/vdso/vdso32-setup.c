@@ -13,7 +13,6 @@
 #include <linux/mm_types.h>
 #include <linux/elf.h>
 
-#include <asm/processor.h>
 #include <asm/vdso.h>
 
 #ifdef CONFIG_COMPAT_VDSO

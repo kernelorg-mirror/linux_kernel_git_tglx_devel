@@ -7,14 +7,13 @@
 #include <linux/sched.h>
 
 #include <asm/barrier.h>
-#include <asm/processor.h>
 #include <asm/cpufeature.h>
-#include <asm/special_insns.h>
-#include <asm/smp.h>
 #include <asm/invpcid.h>
-#include <asm/pti.h>
-#include <asm/processor-flags.h>
 #include <asm/pgtable.h>
+#include <asm/processor-flags.h>
+#include <asm/pti.h>
+#include <asm/smp.h>
+#include <asm/special_insns.h>
 
 DECLARE_PER_CPU(u64, tlbstate_untag_mask);
 

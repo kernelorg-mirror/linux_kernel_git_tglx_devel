@@ -2,6 +2,8 @@
 #ifndef _ASM_X86_CPU_DEVICE_ID
 #define _ASM_X86_CPU_DEVICE_ID
 
+#include <linux/bits.h>
+
 /*
  * Can't use <linux/bitfield.h> because it generates expressions that
  * cannot be used in structure initializers. Bitfield construction
@@ -43,7 +45,7 @@
 /* Get the INTEL_FAM* model defines */
 #include <asm/intel-family.h>
 /* And the X86_VENDOR_* ones */
-#include <asm/processor.h>
+#include <asm/cpuinfo.h>
 
 /* Centaur FAM6 models */
 #define X86_CENTAUR_FAM6_C7_A		0xa

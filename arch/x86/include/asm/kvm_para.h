@@ -2,11 +2,10 @@
 #ifndef _ASM_X86_KVM_PARA_H
 #define _ASM_X86_KVM_PARA_H
 
-#include <asm/processor.h>
-#include <asm/alternative.h>
 #include <linux/interrupt.h>
 #include <uapi/asm/kvm_para.h>
 
+#include <asm/alternative.h>
 #include <asm/tdx.h>
 
 #ifdef CONFIG_KVM_GUEST

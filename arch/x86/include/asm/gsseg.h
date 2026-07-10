@@ -4,10 +4,9 @@
 
 #include <linux/types.h>
 
+#include <asm/alternative.h>
 #include <asm/asm.h>
 #include <asm/cpufeature.h>
-#include <asm/alternative.h>
-#include <asm/processor.h>
 #include <asm/nops.h>
 
 #ifdef CONFIG_X86_64

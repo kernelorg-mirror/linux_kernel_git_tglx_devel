@@ -36,9 +36,7 @@
 extern struct shared_info *HYPERVISOR_shared_info;
 extern struct start_info *xen_start_info;
 
-#include <asm/bug.h>
 #include <asm/cpuid/api.h>
-#include <asm/processor.h>
 
 #define XEN_SIGNATURE "XenVMMXenVMM"
 
@@ -61,6 +59,8 @@ void xen_arch_unregister_cpu(int num);
 #endif
 
 #ifdef CONFIG_PVH
+struct boot_params;
+
 void __init xen_pvh_init(struct boot_params *boot_params);
 void __init mem_map_via_hcall(struct boot_params *boot_params_p);
 #endif

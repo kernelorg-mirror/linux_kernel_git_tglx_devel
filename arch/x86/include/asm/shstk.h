@@ -25,7 +25,9 @@ int shstk_update_last_frame(unsigned long val);
 bool shstk_is_enabled(void);
 int shstk_pop(u64 *val);
 int shstk_push(u64 val);
-#else
+#else /* CONFIG_X86_USER_SHADOW_STACK */
+#include <linux/errno.h>
+
 static inline long shstk_prctl(struct task_struct *task, int option,
 			       unsigned long arg2) { return -EINVAL; }
 static inline void reset_thread_features(void) {}

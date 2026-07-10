@@ -10,7 +10,6 @@
 
 #include <asm/numa.h>
 #include <asm/fixmap.h>
-#include <asm/processor.h>
 #include <asm/mmu.h>
 #include <asm/mpspec.h>
 #include <asm/x86_init.h>

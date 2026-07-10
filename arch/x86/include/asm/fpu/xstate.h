@@ -5,7 +5,6 @@
 #include <linux/uaccess.h>
 #include <linux/types.h>
 
-#include <asm/processor.h>
 #include <asm/fpu/api.h>
 #include <asm/user.h>
 

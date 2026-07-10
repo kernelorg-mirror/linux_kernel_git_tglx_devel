@@ -4,7 +4,6 @@
 
 #include <asm/processor-flags.h>
 
-/* Forward declaration, a strange C thing */
 struct task_struct;
 struct mm_struct;
 struct io_bitmap;
@@ -15,29 +14,19 @@ struct vm86;
 #include <asm/cpuinfo.h>
 #include <asm/current.h>
 #include <asm/desc_defs.h>
-#include <asm/fpu/types.h>
 #include <asm/io_bitmap_defs.h>
-#include <asm/math_emu.h>
-#include <asm/nops.h>
 #include <asm/page.h>
 #include <asm/percpu.h>
 #include <asm/pgtable_types.h>
-#include <asm/segment.h>
 #include <asm/shstk.h>
 #include <asm/special_insns.h>
 #include <asm/types.h>
 #include <asm/unwind_hints.h>
 #include <asm/vdso/processor.h>
 #include <asm/vmxfeatures.h>
-#include <uapi/asm/sigcontext.h>
 
-#include <linux/cache.h>
-#include <linux/err.h>
-#include <linux/irqflags.h>
-#include <linux/math64.h>
-#include <linux/mem_encrypt.h>
 #include <linux/personality.h>
-#include <linux/threads.h>
+#include <linux/percpu-defs.h>
 
 /*
  * We handle most unaligned accesses in hardware.  On the other hand

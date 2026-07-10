@@ -7,9 +7,10 @@
 #ifndef _ASM_X86_GEODE_H
 #define _ASM_X86_GEODE_H
 
-#include <asm/processor.h>
 #include <linux/io.h>
 #include <linux/cs5535.h>
+
+#include <asm/cpuinfo.h>
 
 static inline int is_geode_gx(void)
 {

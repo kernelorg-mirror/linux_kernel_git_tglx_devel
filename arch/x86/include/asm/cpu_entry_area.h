@@ -4,7 +4,7 @@
 #define _ASM_X86_CPU_ENTRY_AREA_H
 
 #include <linux/percpu-defs.h>
-#include <asm/processor.h>
+
 #include <asm/intel_ds.h>
 #include <asm/pgtable_areas.h>
 

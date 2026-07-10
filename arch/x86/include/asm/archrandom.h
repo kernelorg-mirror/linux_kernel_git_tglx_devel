@@ -10,7 +10,6 @@
 #ifndef ASM_X86_ARCHRANDOM_H
 #define ASM_X86_ARCHRANDOM_H
 
-#include <asm/processor.h>
 #include <asm/cpufeature.h>
 
 #define RDRAND_RETRY_LOOPS	10

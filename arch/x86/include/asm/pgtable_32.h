@@ -14,12 +14,10 @@
  * the i386 page table tree.
  */
 #ifndef __ASSEMBLER__
-#include <asm/processor.h>
-#include <linux/threads.h>
-
 #include <linux/bitops.h>
 #include <linux/list.h>
 #include <linux/spinlock.h>
+#include <linux/threads.h>
 
 struct mm_struct;
 struct vm_area_struct;
