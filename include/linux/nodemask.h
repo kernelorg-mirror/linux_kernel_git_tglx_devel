@@ -87,11 +87,11 @@
  * for such situations. See below and CPUMASK_ALLOC also.
  */
 
-#include <linux/threads.h>
 #include <linux/bitmap.h>
+#include <linux/find.h>
 #include <linux/minmax.h>
 #include <linux/nodemask_types.h>
-#include <linux/random.h>
+#include <linux/threads.h>
 
 extern nodemask_t _unused_nodemask_arg_;
 
