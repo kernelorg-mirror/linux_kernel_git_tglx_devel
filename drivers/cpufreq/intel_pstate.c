@@ -31,11 +31,13 @@
 #include <linux/units.h>
 
 #include <asm/cpu.h>
-#include <asm/div64.h>
-#include <asm/msr.h>
 #include <asm/cpu_device_id.h>
 #include <asm/cpufeature.h>
+#include <asm/div64.h>
 #include <asm/intel-family.h>
+#include <asm/msr.h>
+#include <asm/tsc.h>
+
 #include "../drivers/thermal/intel/thermal_interrupt.h"
 
 #define INTEL_PSTATE_SAMPLING_INTERVAL	(10 * NSEC_PER_MSEC)

@@ -43,10 +43,11 @@
 #include <acpi/processor.h>
 #include <acpi/cppc_acpi.h>
 
+#include <asm/cpu_device_id.h>
+#include <asm/cpufeature.h>
 #include <asm/msr.h>
 #include <asm/processor.h>
-#include <asm/cpufeature.h>
-#include <asm/cpu_device_id.h>
+#include <asm/tsc.h>
 
 #include "amd-pstate.h"
 #include "amd-pstate-trace.h"

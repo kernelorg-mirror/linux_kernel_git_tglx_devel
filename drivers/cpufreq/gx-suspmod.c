@@ -80,6 +80,7 @@
 
 #include <asm/cpu_device_id.h>
 #include <asm/processor-cyrix.h>
+#include <asm/tsc.h>
 
 /* PCI config registers, all at F0 */
 #define PCI_PMER1	0x80	/* power management enable register 1 */

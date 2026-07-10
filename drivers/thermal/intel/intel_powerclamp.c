@@ -33,9 +33,10 @@
 #include <linux/seq_file.h>
 #include <linux/idle_inject.h>
 
+#include <asm/cpu_device_id.h>
 #include <asm/msr.h>
 #include <asm/mwait.h>
-#include <asm/cpu_device_id.h>
+#include <asm/rdtsc.h>
 
 #define MAX_TARGET_RATIO (100U)
 /* For each undisturbed clamping period (no extra wake ups during idle time),

@@ -31,6 +31,7 @@
 #include <asm/mce.h>
 #include <asm/msr.h>
 #include <asm/nmi.h>
+#include <asm/rdtsc.h>
 #include <asm/smp.h>
 
 #include "internal.h"

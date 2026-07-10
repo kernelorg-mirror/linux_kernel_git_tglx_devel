@@ -19,9 +19,10 @@
 #include <linux/cc_platform.h>
 
 #include <asm/hypervisor.h>
+#include <asm/kvmclock.h>
+#include <asm/tsc.h>
 #include <asm/timer.h>
 #include <asm/x86_init.h>
-#include <asm/kvmclock.h>
 
 static int kvmclock __initdata = 1;
 static int kvmclock_vsyscall __initdata = 1;

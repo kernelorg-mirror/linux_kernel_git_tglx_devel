@@ -17,26 +17,29 @@
  */
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/kvm_host.h>
-#include <linux/kvm.h>
-#include <linux/mm.h>
+#include <linux/atomic.h>
+#include <linux/export.h>
 #include <linux/highmem.h>
-#include <linux/smp.h>
 #include <linux/hrtimer.h>
 #include <linux/io.h>
-#include <linux/export.h>
+#include <linux/jump_label.h>
+#include <linux/kvm.h>
+#include <linux/kvm_host.h>
 #include <linux/math64.h>
+#include <linux/mm.h>
 #include <linux/slab.h>
+#include <linux/smp.h>
+
 #include <asm/apic.h>
-#include <asm/processor.h>
+#include <asm/apicdef.h>
+#include <asm/current.h>
+#include <asm/delay.h>
 #include <asm/mce.h>
 #include <asm/msr.h>
 #include <asm/page.h>
-#include <asm/current.h>
-#include <asm/apicdef.h>
-#include <asm/delay.h>
-#include <linux/atomic.h>
-#include <linux/jump_label.h>
+#include <asm/processor.h>
+#include <asm/rdtsc.h>
+
 #include "regs.h"
 #include "irq.h"
 #include "ioapic.h"

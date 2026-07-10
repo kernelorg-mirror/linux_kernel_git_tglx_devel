@@ -27,6 +27,7 @@
 #include <linux/workqueue.h>
 
 #include <asm/cpu_device_id.h>
+#include <asm/msr.h>
 
 #include <acpi/pcc.h>
 #include <acpi/cppc_acpi.h>

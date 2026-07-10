@@ -12,18 +12,19 @@
 
 #include <linux/clocksource.h>
 #include <linux/clockchips.h>
+#include <linux/export.h>
+#include <linux/i8253.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
-#include <linux/i8253.h>
 #include <linux/time.h>
-#include <linux/export.h>
 
+#include <asm/hpet.h>
+#include <asm/i8259.h>
+#include <asm/time.h>
+#include <asm/timer.h>
+#include <asm/tsc.h>
 #include <asm/vsyscall.h>
 #include <asm/x86_init.h>
-#include <asm/i8259.h>
-#include <asm/timer.h>
-#include <asm/hpet.h>
-#include <asm/time.h>
 
 unsigned long profile_pc(struct pt_regs *regs)
 {

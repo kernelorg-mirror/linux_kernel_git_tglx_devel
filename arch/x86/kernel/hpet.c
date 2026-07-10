@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include <linux/clockchips.h>
-#include <linux/interrupt.h>
-#include <linux/export.h>
-#include <linux/delay.h>
-#include <linux/hpet.h>
 #include <linux/cpu.h>
+#include <linux/delay.h>
+#include <linux/export.h>
+#include <linux/hpet.h>
+#include <linux/interrupt.h>
 #include <linux/irq.h>
 
 #include <asm/cpuid/api.h>
@@ -13,6 +13,7 @@
 #include <asm/time.h>
 #include <asm/mwait.h>
 #include <asm/msr.h>
+#include <asm/rdtsc.h>
 
 #undef  pr_fmt
 #define pr_fmt(fmt) "hpet: " fmt

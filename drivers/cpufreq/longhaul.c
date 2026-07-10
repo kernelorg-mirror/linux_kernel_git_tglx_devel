@@ -38,6 +38,7 @@
 
 #include <asm/msr.h>
 #include <asm/cpu_device_id.h>
+#include <asm/tsc.h>
 #include <acpi/processor.h>
 
 #include "longhaul.h"

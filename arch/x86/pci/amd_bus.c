@@ -6,8 +6,8 @@
 #include <linux/range.h>
 
 #include <asm/amd/nb.h>
+#include <asm/msr.h>
 #include <asm/pci_x86.h>
-
 #include <asm/pci-direct.h>
 
 #include "bus_numa.h"

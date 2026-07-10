@@ -28,8 +28,10 @@
 #ifndef _VMWGFX_MKSSTAT_H_
 #define _VMWGFX_MKSSTAT_H_
 
-#include <asm/page.h>
 #include <linux/kconfig.h>
+
+#include <asm/page.h>
+#include <asm/rdtsc.h>
 
 /* Reservation marker for mksstat pid's */
 #define MKSSTAT_PID_RESERVED -1

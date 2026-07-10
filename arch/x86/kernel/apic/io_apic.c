@@ -31,40 +31,41 @@
  *	workaround has been removed.
  */
 
-#include <linux/mm.h>
+#include <linux/acpi.h>
+#include <linux/compiler.h>
+#include <linux/delay.h>
+#include <linux/export.h>
+#include <linux/freezer.h>
+#include <linux/init.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
-#include <linux/init.h>
-#include <linux/delay.h>
-#include <linux/sched.h>
-#include <linux/pci.h>
-#include <linux/mc146818rtc.h>
-#include <linux/compiler.h>
-#include <linux/acpi.h>
-#include <linux/export.h>
-#include <linux/syscore_ops.h>
-#include <linux/freezer.h>
+#include <linux/jiffies.h>
 #include <linux/kthread.h>
-#include <linux/jiffies.h>	/* time_after() */
-#include <linux/slab.h>
+#include <linux/mc146818rtc.h>
 #include <linux/memblock.h>
+#include <linux/mm.h>
 #include <linux/msi.h>
+#include <linux/pci.h>
+#include <linux/sched.h>
+#include <linux/slab.h>
+#include <linux/syscore_ops.h>
 
-#include <asm/irqdomain.h>
-#include <asm/io.h>
-#include <asm/smp.h>
+#include <asm/acpi.h>
+#include <asm/apic.h>
 #include <asm/cpu.h>
 #include <asm/desc.h>
-#include <asm/acpi.h>
 #include <asm/dma.h>
-#include <asm/timer.h>
-#include <asm/time.h>
-#include <asm/i8259.h>
-#include <asm/setup.h>
-#include <asm/irq_remapping.h>
 #include <asm/hw_irq.h>
-#include <asm/apic.h>
+#include <asm/i8259.h>
+#include <asm/io.h>
+#include <asm/irq_remapping.h>
+#include <asm/irqdomain.h>
 #include <asm/pgtable.h>
+#include <asm/rdtsc.h>
+#include <asm/setup.h>
+#include <asm/smp.h>
+#include <asm/time.h>
+#include <asm/timer.h>
 #include <asm/x86_init.h>
 
 #define	for_each_ioapic(idx)		\

@@ -14,6 +14,7 @@
 
 #include <asm/fixmap.h>
 #include <asm/pvclock.h>
+#include <asm/rdtsc.h>
 #include <asm/vgtod.h>
 
 static u8 valid_flags __read_mostly = 0;

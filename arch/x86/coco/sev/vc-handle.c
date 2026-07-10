@@ -20,19 +20,20 @@
 #include <linux/efi.h>
 #include <uapi/linux/sev-guest.h>
 
-#include <asm/init.h>
-#include <asm/stacktrace.h>
-#include <asm/sev.h>
-#include <asm/insn-eval.h>
+#include <asm/apic.h>
+#include <asm/cpu.h>
+#include <asm/cpuid/api.h>
 #include <asm/fpu/xcr.h>
+#include <asm/init.h>
+#include <asm/insn-eval.h>
+#include <asm/sev.h>
+#include <asm/stacktrace.h>
+#include <asm/rdtsc.h>
 #include <asm/processor.h>
 #include <asm/setup.h>
-#include <asm/traps.h>
-#include <asm/svm.h>
 #include <asm/smp.h>
-#include <asm/cpu.h>
-#include <asm/apic.h>
-#include <asm/cpuid/api.h>
+#include <asm/svm.h>
+#include <asm/traps.h>
 
 #include "internal.h"
 

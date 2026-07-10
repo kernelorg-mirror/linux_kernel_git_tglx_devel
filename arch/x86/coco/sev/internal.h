@@ -2,6 +2,8 @@
 #ifndef __X86_COCO_SEV_INTERNAL_H__
 #define __X86_COCO_SEV_INTERNAL_H__
 
+#include <asm/msr.h>
+
 #define DR7_RESET_VALUE        0x400
 
 extern u64 sev_hv_features;

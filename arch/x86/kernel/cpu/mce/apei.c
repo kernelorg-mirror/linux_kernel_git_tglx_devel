@@ -16,13 +16,16 @@
  *   Author: Huang Ying <ying.huang@intel.com>
  */
 
-#include <linux/export.h>
-#include <linux/kernel.h>
 #include <linux/acpi.h>
 #include <linux/cper.h>
+#include <linux/export.h>
+#include <linux/kernel.h>
+
 #include <acpi/apei.h>
 #include <acpi/ghes.h>
+
 #include <asm/mce.h>
+#include <asm/rdtsc.h>
 
 #include "internal.h"
 

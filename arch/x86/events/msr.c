@@ -2,7 +2,9 @@
 #include <linux/perf_event.h>
 #include <linux/sysfs.h>
 #include <linux/nospec.h>
+
 #include <asm/msr.h>
+#include <asm/rdtsc.h>
 
 #include "probe.h"
 

@@ -18,10 +18,10 @@
 #include <linux/preempt.h>
 #include <linux/delay.h>
 
-#include <asm/processor.h>
 #include <asm/delay.h>
-#include <asm/timer.h>
 #include <asm/mwait.h>
+#include <asm/rdtsc.h>
+#include <asm/timer.h>
 
 #ifdef CONFIG_SMP
 # include <asm/smp.h>

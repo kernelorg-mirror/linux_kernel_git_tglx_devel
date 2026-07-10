@@ -40,6 +40,7 @@
 #include <linux/fs.h>
 #include <linux/vmalloc.h>
 #include <linux/export.h>
+#include <linux/kernel_stat.h>
 #include <linux/moduleparam.h>
 #include <linux/mman.h>
 #include <linux/highmem.h>
@@ -66,23 +67,23 @@
 #include <trace/events/kvm.h>
 
 #include <asm/debugreg.h>
-#include <asm/msr.h>
 #include <asm/desc.h>
-#include <asm/mce.h>
-#include <asm/pkru.h>
-#include <linux/kernel_stat.h>
+#include <asm/div64.h>
+#include <asm/emulate_prefix.h>
 #include <asm/fpu/api.h>
 #include <asm/fpu/xcr.h>
 #include <asm/fpu/xstate.h>
-#include <asm/pvclock.h>
-#include <asm/div64.h>
-#include <asm/irq_remapping.h>
-#include <asm/mshyperv.h>
 #include <asm/hypervisor.h>
-#include <asm/tlbflush.h>
 #include <asm/intel_pt.h>
-#include <asm/emulate_prefix.h>
+#include <asm/irq_remapping.h>
+#include <asm/mce.h>
+#include <asm/mshyperv.h>
+#include <asm/msr.h>
+#include <asm/pkru.h>
+#include <asm/pvclock.h>
 #include <asm/sgx.h>
+#include <asm/tlbflush.h>
+#include <asm/tsc.h>
 #include <asm/virt.h>
 
 #include <clocksource/hyperv_timer.h>

@@ -7,6 +7,7 @@
 #include <asm/debugreg.h>
 #include <asm/mmu_context.h>
 #include <asm/msr.h>
+#include <asm/rdtsc.h>
 
 #include "x86.h"
 #include "cpuid.h"

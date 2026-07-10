@@ -17,6 +17,8 @@
 #include <linux/pci.h>
 #include <linux/delay.h>
 
+#include <asm/tsc.h>
+
 #define NFORCE2_XTAL 25
 #define NFORCE2_BOOTFSB 0x48
 #define NFORCE2_PLLENABLE 0xa8

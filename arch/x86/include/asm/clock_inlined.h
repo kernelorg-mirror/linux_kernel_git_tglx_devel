@@ -2,7 +2,8 @@
 #ifndef _ASM_X86_CLOCK_INLINED_H
 #define _ASM_X86_CLOCK_INLINED_H
 
-#include <asm/tsc.h>
+#include <asm/msr.h>
+#include <asm/rdtsc.h>
 
 struct clocksource;
 

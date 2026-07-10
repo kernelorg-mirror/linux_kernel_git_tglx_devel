@@ -35,6 +35,7 @@
 #ifdef CONFIG_X86
 #include <asm/apic.h>
 #include <asm/cpu.h>
+#include <asm/tsc.h>
 #endif
 
 #define ACPI_IDLE_STATE_START	(IS_ENABLED(CONFIG_ARCH_HAS_CPU_RELAX) ? 1 : 0)

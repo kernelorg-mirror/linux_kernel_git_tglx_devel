@@ -11,6 +11,7 @@
 #include <asm/insn.h>
 #include <asm/io.h>
 #include <asm/msr.h>
+#include <asm/tsc.h>
 #include <asm/timer.h>
 
 #include "../perf_event.h"

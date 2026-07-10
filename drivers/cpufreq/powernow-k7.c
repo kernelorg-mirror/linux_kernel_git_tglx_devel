@@ -26,10 +26,11 @@
 #include <linux/timex.h>
 #include <linux/io.h>
 
-#include <asm/timer.h>		/* Needed for recalibrate_cpu_khz() */
-#include <asm/msr.h>
 #include <asm/cpu_device_id.h>
 #include <asm/cpuid/api.h>
+#include <asm/msr.h>
+#include <asm/tsc.h>
+#include <asm/timer.h>
 
 #ifdef CONFIG_X86_POWERNOW_K7_ACPI
 #include <linux/acpi.h>

@@ -36,6 +36,8 @@
 
 #include <asm/apicdef.h>
 #include <asm/mshyperv.h>
+#include <asm/rdtsc.h>
+
 #include <trace/events/kvm.h>
 
 #include "trace.h"

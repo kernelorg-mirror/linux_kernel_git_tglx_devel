@@ -17,23 +17,24 @@
 #include <linux/static_key.h>
 #include <linux/static_call.h>
 
-#include <asm/cpuid/api.h>
-#include <asm/hpet.h>
-#include <asm/timer.h>
-#include <asm/vgtod.h>
-#include <asm/time.h>
-#include <asm/delay.h>
-#include <asm/hypervisor.h>
-#include <asm/nmi.h>
-#include <asm/x86_init.h>
-#include <asm/geode.h>
 #include <asm/apic.h>
 #include <asm/cpu_device_id.h>
+#include <asm/cpuid/api.h>
+#include <asm/delay.h>
+#include <asm/geode.h>
+#include <asm/hpet.h>
+#include <asm/hypervisor.h>
 #include <asm/i8259.h>
 #include <asm/msr.h>
-#include <asm/topology.h>
-#include <asm/uv/uv.h>
+#include <asm/nmi.h>
 #include <asm/sev.h>
+#include <asm/tsc.h>
+#include <asm/time.h>
+#include <asm/timer.h>
+#include <asm/topology.h>
+#include <asm/vgtod.h>
+#include <asm/x86_init.h>
+#include <asm/uv/uv.h>
 
 unsigned int __read_mostly cpu_khz;	/* TSC clocks / usec, not used here */
 EXPORT_SYMBOL(cpu_khz);

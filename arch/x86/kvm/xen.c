@@ -23,8 +23,9 @@
 #include <xen/interface/event_channel.h>
 #include <xen/interface/sched.h>
 
-#include <asm/xen/cpuid.h>
 #include <asm/pvclock.h>
+#include <asm/rdtsc.h>
+#include <asm/xen/cpuid.h>
 
 #include "cpuid.h"
 #include "trace.h"

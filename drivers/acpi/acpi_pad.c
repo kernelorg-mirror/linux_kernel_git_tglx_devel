@@ -5,22 +5,25 @@
  * Copyright (c) 2009, Intel Corporation.
  */
 
-#include <linux/kernel.h>
-#include <linux/cpumask.h>
-#include <linux/module.h>
-#include <linux/init.h>
-#include <linux/types.h>
-#include <linux/kthread.h>
-#include <uapi/linux/sched/types.h>
-#include <linux/freezer.h>
-#include <linux/cpu.h>
-#include <linux/tick.h>
-#include <linux/slab.h>
 #include <linux/acpi.h>
+#include <linux/cpu.h>
+#include <linux/cpumask.h>
+#include <linux/freezer.h>
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/kthread.h>
+#include <linux/module.h>
 #include <linux/perf_event.h>
 #include <linux/platform_device.h>
+#include <linux/slab.h>
+#include <linux/tick.h>
+#include <linux/types.h>
+#include <uapi/linux/sched/types.h>
+
 #include <asm/cpuid/api.h>
 #include <asm/mwait.h>
+#include <asm/tsc.h>
+
 #include <xen/xen.h>
 
 #define ACPI_PROCESSOR_AGGREGATOR_NOTIFY 0x80
