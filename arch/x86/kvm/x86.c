@@ -77,6 +77,7 @@
 #include <asm/intel_pt.h>
 #include <asm/irq_remapping.h>
 #include <asm/mce.h>
+#include <asm/mitigations.h>
 #include <asm/mshyperv.h>
 #include <asm/msr.h>
 #include <asm/pkru.h>

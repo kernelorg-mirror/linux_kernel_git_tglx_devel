@@ -22,6 +22,7 @@
 #include <asm/spec-ctrl.h>
 #include <asm/cmdline.h>
 #include <asm/bugs.h>
+#include <asm/mitigations.h>
 #include <asm/processor.h>
 #include <asm/processor-flags.h>
 #include <asm/fpu/api.h>

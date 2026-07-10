@@ -10,24 +10,25 @@
 #include <linux/swapops.h>
 #include <linux/sched/task.h>
 
-#include <asm/set_memory.h>
 #include <asm/cpu_device_id.h>
+#include <asm/cpufeature.h>
+#include <asm/dma.h>
 #include <asm/e820/api.h>
+#include <asm/hypervisor.h>
 #include <asm/init.h>
+#include <asm/kaslr.h>
+#include <asm/memtype.h>
+#include <asm/mitigations.h>
+#include <asm/mmu_context.h>
 #include <asm/page.h>
 #include <asm/page_types.h>
-#include <asm/sections.h>
-#include <asm/setup.h>
-#include <asm/tlbflush.h>
-#include <asm/tlb.h>
-#include <asm/dma.h>		/* for MAX_DMA_PFN */
-#include <asm/kaslr.h>
-#include <asm/hypervisor.h>
-#include <asm/cpufeature.h>
 #include <asm/pti.h>
+#include <asm/sections.h>
+#include <asm/set_memory.h>
+#include <asm/setup.h>
 #include <asm/text-patching.h>
-#include <asm/memtype.h>
-#include <asm/mmu_context.h>
+#include <asm/tlb.h>
+#include <asm/tlbflush.h>
 
 /*
  * We need to define the tracepoints somewhere, and tlb.c

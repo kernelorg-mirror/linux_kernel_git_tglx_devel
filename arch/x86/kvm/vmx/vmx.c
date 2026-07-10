@@ -43,6 +43,7 @@
 #include <asm/irq_remapping.h>
 #include <asm/reboot.h>
 #include <asm/perf_event.h>
+#include <asm/mitigations.h>
 #include <asm/mmu_context.h>
 #include <asm/mshyperv.h>
 #include <asm/msr.h>

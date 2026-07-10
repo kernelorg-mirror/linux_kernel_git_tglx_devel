@@ -603,27 +603,6 @@ void store_cpu_caps(struct cpuinfo_x86 *info);
 
 DECLARE_PER_CPU(bool, cache_state_incoherent);
 
-enum l1tf_mitigations {
-	L1TF_MITIGATION_OFF,
-	L1TF_MITIGATION_AUTO,
-	L1TF_MITIGATION_FLUSH_NOWARN,
-	L1TF_MITIGATION_FLUSH,
-	L1TF_MITIGATION_FLUSH_NOSMT,
-	L1TF_MITIGATION_FULL,
-	L1TF_MITIGATION_FULL_FORCE
-};
-
-extern enum l1tf_mitigations l1tf_mitigation;
-
-enum mds_mitigations {
-	MDS_MITIGATION_OFF,
-	MDS_MITIGATION_AUTO,
-	MDS_MITIGATION_FULL,
-	MDS_MITIGATION_VMWERV,
-};
-
-extern bool gds_ucode_mitigated(void);
-
 /*
  * Make previous memory operations globally visible before
  * a WRMSR.
