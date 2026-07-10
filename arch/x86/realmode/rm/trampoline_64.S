@@ -28,7 +28,7 @@
 #include <linux/linkage.h>
 #include <asm/pgtable_types.h>
 #include <asm/page_types.h>
-#include <asm/msr.h>
+#include <asm/msr-index.h>
 #include <asm/segment.h>
 #include <asm/processor-flags.h>
 #include <asm/realmode.h>
