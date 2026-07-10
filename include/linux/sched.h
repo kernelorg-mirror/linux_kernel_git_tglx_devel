@@ -14,6 +14,7 @@
 #include <linux/thread_info.h>
 #include <linux/preempt.h>
 #include <linux/cpumask_types.h>
+#include <linux/kernel.h>
 
 #include <linux/cache.h>
 #include <linux/futex_types.h>
