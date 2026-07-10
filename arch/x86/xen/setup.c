@@ -17,14 +17,15 @@
 #include <linux/memory_hotplug.h>
 #include <linux/acpi.h>
 
-#include <asm/elf.h>
-#include <asm/vdso.h>
 #include <asm/e820/api.h>
-#include <asm/setup.h>
-#include <asm/numa.h>
+#include <asm/elf.h>
+#include <asm/idle.h>
 #include <asm/idtentry.h>
-#include <asm/xen/hypervisor.h>
+#include <asm/numa.h>
+#include <asm/setup.h>
+#include <asm/vdso.h>
 #include <asm/xen/hypercall.h>
+#include <asm/xen/hypervisor.h>
 
 #include <xen/xen.h>
 #include <xen/page.h>

@@ -9,6 +9,7 @@
 #include <xen/acpi.h>
 
 #include <asm/bootparam.h>
+#include <asm/idle.h>
 #include <asm/io_apic.h>
 #include <asm/hypervisor.h>
 #include <asm/e820/api.h>
