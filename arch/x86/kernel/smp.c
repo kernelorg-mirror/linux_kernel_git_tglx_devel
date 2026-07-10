@@ -26,7 +26,6 @@
 #include <asm/mtrr.h>
 #include <asm/tlbflush.h>
 #include <asm/mmu_context.h>
-#include <asm/proto.h>
 #include <asm/apic.h>
 #include <asm/cpu.h>
 #include <asm/idtentry.h>

@@ -29,10 +29,11 @@
 #include <trace/events/power.h>
 #include <linux/hw_breakpoint.h>
 #include <linux/entry-common.h>
+#include <linux/uaccess.h>
+
 #include <asm/cpu.h>
 #include <asm/cpuid/api.h>
 #include <asm/apic.h>
-#include <linux/uaccess.h>
 #include <asm/mwait.h>
 #include <asm/fpu/api.h>
 #include <asm/fpu/sched.h>
@@ -45,9 +46,9 @@
 #include <asm/switch_to.h>
 #include <asm/desc.h>
 #include <asm/prctl.h>
+#include <asm/prctl_x86.h>
 #include <asm/spec-ctrl.h>
 #include <asm/io_bitmap.h>
-#include <asm/proto.h>
 #include <asm/frame.h>
 #include <asm/unwind.h>
 #include <asm/tdx.h>

@@ -22,11 +22,11 @@
 #include <linux/syscalls.h>
 #include <asm/ucontext.h>
 #include <linux/uaccess.h>
+
 #include <asm/fpu/signal.h>
 #include <asm/ptrace.h>
 #include <asm/user32.h>
 #include <uapi/asm/sigcontext.h>
-#include <asm/proto.h>
 #include <asm/vdso.h>
 #include <asm/sigframe.h>
 #include <asm/sighandling.h>

@@ -17,7 +17,7 @@
 #include <linux/init.h>
 #include <linux/topology.h>
 #include <linux/mm.h>
-#include <asm/proto.h>
+
 #include <asm/numa.h>
 #include <asm/e820/api.h>
 #include <asm/apic.h>

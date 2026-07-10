@@ -52,7 +52,6 @@
 #include <asm/olpc_ofw.h>
 #include <asm/pci-direct.h>
 #include <asm/prom.h>
-#include <asm/proto.h>
 #include <asm/realmode.h>
 #include <asm/thermal.h>
 #include <asm/unwind.h>

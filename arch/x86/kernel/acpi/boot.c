@@ -42,10 +42,6 @@ static int __initdata acpi_force = 0;
 int acpi_disabled;
 EXPORT_SYMBOL(acpi_disabled);
 
-#ifdef	CONFIG_X86_64
-# include <asm/proto.h>
-#endif				/* X86 */
-
 int acpi_noirq;				/* skip ACPI IRQ initialization */
 static int acpi_nobgrt;			/* skip ACPI BGRT */
 static int acpi_spcr_add __initdata;	/* add SPCR-provided console */

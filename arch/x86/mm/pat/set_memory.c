@@ -30,7 +30,6 @@
 #include <asm/setup.h>
 #include <linux/uaccess.h>
 #include <asm/pgalloc.h>
-#include <asm/proto.h>
 #include <asm/memtype.h>
 
 #include "../mm_internal.h"

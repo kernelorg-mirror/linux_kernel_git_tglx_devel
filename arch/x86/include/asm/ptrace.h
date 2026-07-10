@@ -2,11 +2,15 @@
 #ifndef _ASM_X86_PTRACE_H
 #define _ASM_X86_PTRACE_H
 
-#include <asm/segment.h>
 #include <asm/page_types.h>
+#include <asm/segment.h>
 #include <uapi/asm/ptrace.h>
 
 #ifndef __ASSEMBLER__
+
+#include <asm/entry-syscalls.h>
+#include <asm/prctl_x86.h>
+
 #ifdef __i386__
 
 struct pt_regs {
@@ -174,8 +178,6 @@ struct pt_regs {
 #ifdef CONFIG_PARAVIRT
 #include <asm/paravirt-base.h>
 #endif
-
-#include <asm/proto.h>
 
 struct cpuinfo_x86;
 struct task_struct;

@@ -19,7 +19,6 @@
 #include <linux/acpi.h>
 #include <asm/types.h>
 #include <asm/mmzone.h>
-#include <asm/proto.h>
 #include <asm/e820/api.h>
 #include <asm/pci-direct.h>
 #include <asm/numa.h>

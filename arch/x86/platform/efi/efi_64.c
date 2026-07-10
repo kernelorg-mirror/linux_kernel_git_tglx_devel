@@ -40,7 +40,6 @@
 #include <asm/page.h>
 #include <asm/e820/api.h>
 #include <asm/tlbflush.h>
-#include <asm/proto.h>
 #include <asm/efi.h>
 #include <asm/cacheflush.h>
 #include <asm/fixmap.h>

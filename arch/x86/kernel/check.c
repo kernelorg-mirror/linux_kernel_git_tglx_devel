@@ -8,7 +8,6 @@
 #include <linux/workqueue.h>
 #include <linux/memblock.h>
 
-#include <asm/proto.h>
 #include <asm/setup.h>
 
 /*

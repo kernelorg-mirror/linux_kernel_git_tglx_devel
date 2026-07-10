@@ -47,8 +47,8 @@
 #include <asm/fpu/sched.h>
 #include <asm/mmu_context.h>
 #include <asm/prctl.h>
+#include <asm/prctl_x86.h>
 #include <asm/desc.h>
-#include <asm/proto.h>
 #include <asm/ia32.h>
 #include <asm/debugreg.h>
 #include <asm/switch_to.h>

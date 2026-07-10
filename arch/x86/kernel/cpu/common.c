@@ -28,10 +28,14 @@
 #include <linux/stackprotector.h>
 #include <linux/utsname.h>
 #include <linux/efi.h>
+#include <linux/topology.h>
+#include <linux/cpumask.h>
+#include <linux/atomic.h>
 
 #include <asm/alternative.h>
 #include <asm/cmdline.h>
 #include <asm/cpuid/api.h>
+#include <asm/entry-syscalls.h>
 #include <asm/perf_event.h>
 #include <asm/mmu_context.h>
 #include <asm/doublefault.h>
@@ -42,10 +46,6 @@
 #include <asm/debugreg.h>
 #include <asm/sections.h>
 #include <asm/vsyscall.h>
-#include <linux/topology.h>
-#include <linux/cpumask.h>
-#include <linux/atomic.h>
-#include <asm/proto.h>
 #include <asm/setup.h>
 #include <asm/apic.h>
 #include <asm/desc.h>

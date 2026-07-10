@@ -52,7 +52,6 @@
 #include <asm/switch_to.h>
 #include <asm/vm86.h>
 #include <asm/resctrl.h>
-#include <asm/proto.h>
 
 #include "process.h"
 

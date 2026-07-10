@@ -7,7 +7,6 @@
 #include <asm/cpu_entry_area.h>
 #include <asm/set_memory.h>
 #include <asm/traps.h>
-#include <asm/proto.h>
 #include <asm/desc.h>
 #include <asm/hw_irq.h>
 #include <asm/ia32.h>

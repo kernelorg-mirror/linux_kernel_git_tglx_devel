@@ -57,6 +57,7 @@
 #include <asm/fpu/api.h>
 #include <asm/cpu.h>
 #include <asm/cpu_entry_area.h>
+#include <asm/entry-syscalls.h>
 #include <asm/mce.h>
 #include <asm/fixmap.h>
 #include <asm/mach_traps.h>
@@ -78,8 +79,6 @@
 #include <asm/processor-flags.h>
 #include <asm/setup.h>
 #endif
-
-#include <asm/proto.h>
 
 DECLARE_BITMAP(system_vectors, NR_VECTORS);
 

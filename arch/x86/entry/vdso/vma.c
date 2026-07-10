@@ -19,7 +19,6 @@
 
 #include <asm/pvclock.h>
 #include <asm/vgtod.h>
-#include <asm/proto.h>
 #include <asm/vdso.h>
 #include <asm/tlb.h>
 #include <asm/page.h>

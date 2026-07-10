@@ -59,7 +59,6 @@
 #include <asm/xen/cpuid.h>
 #include <asm/fixmap.h>
 #include <asm/processor.h>
-#include <asm/proto.h>
 #include <asm/msr-index.h>
 #include <asm/msr.h>
 #include <asm/traps.h>

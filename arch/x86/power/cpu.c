@@ -15,7 +15,6 @@
 #include <linux/dmi.h>
 #include <linux/pgtable.h>
 
-#include <asm/proto.h>
 #include <asm/mtrr.h>
 #include <asm/page.h>
 #include <asm/mce.h>

@@ -20,7 +20,6 @@
 #include <asm/setup.h>
 #include <asm/tlbflush.h>
 #include <asm/tlb.h>
-#include <asm/proto.h>
 #include <asm/dma.h>		/* for MAX_DMA_PFN */
 #include <asm/kaslr.h>
 #include <asm/hypervisor.h>

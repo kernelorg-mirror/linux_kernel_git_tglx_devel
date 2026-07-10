@@ -9,7 +9,6 @@
 #include <linux/pci.h>
 #include <linux/amd-iommu.h>
 
-#include <asm/proto.h>
 #include <asm/dma.h>
 #include <asm/iommu.h>
 #include <asm/gart.h>

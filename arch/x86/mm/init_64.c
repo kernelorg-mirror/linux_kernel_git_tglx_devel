@@ -34,10 +34,10 @@
 #include <linux/gfp.h>
 #include <linux/kcore.h>
 #include <linux/bootmem_info.h>
+#include <linux/uaccess.h>
 
 #include <asm/processor.h>
 #include <asm/bios_ebda.h>
-#include <linux/uaccess.h>
 #include <asm/pgalloc.h>
 #include <asm/dma.h>
 #include <asm/fixmap.h>
@@ -45,7 +45,6 @@
 #include <asm/apic.h>
 #include <asm/tlb.h>
 #include <asm/mmu_context.h>
-#include <asm/proto.h>
 #include <asm/smp.h>
 #include <asm/sections.h>
 #include <asm/kdebug.h>

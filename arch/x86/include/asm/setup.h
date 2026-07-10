@@ -69,6 +69,8 @@ extern void x86_ce4100_early_setup(void);
 static inline void x86_ce4100_early_setup(void) { }
 #endif
 
+void x86_configure_nx(void);
+
 #include <linux/kexec_handover.h>
 
 #ifndef _SETUP

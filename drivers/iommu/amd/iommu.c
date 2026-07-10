@@ -31,11 +31,11 @@
 #include <linux/irqdomain.h>
 #include <linux/percpu.h>
 #include <linux/cc_platform.h>
+
 #include <asm/irq_remapping.h>
 #include <asm/io_apic.h>
 #include <asm/apic.h>
 #include <asm/hw_irq.h>
-#include <asm/proto.h>
 #include <asm/iommu.h>
 #include <asm/gart.h>
 #include <asm/dma.h>

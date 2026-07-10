@@ -12,6 +12,7 @@
 #include <linux/topology.h>
 #include <linux/pfn.h>
 #include <linux/stackprotector.h>
+
 #include <asm/sections.h>
 #include <asm/processor.h>
 #include <asm/desc.h>
@@ -19,7 +20,6 @@
 #include <asm/mpspec.h>
 #include <asm/apicdef.h>
 #include <asm/highmem.h>
-#include <asm/proto.h>
 #include <asm/cpumask.h>
 #include <asm/cpu.h>
 

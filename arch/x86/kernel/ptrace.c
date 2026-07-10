@@ -35,7 +35,6 @@
 #include <asm/ldt.h>
 #include <asm/desc.h>
 #include <asm/prctl.h>
-#include <asm/proto.h>
 #include <asm/hw_breakpoint.h>
 #include <asm/traps.h>
 #include <asm/syscall.h>

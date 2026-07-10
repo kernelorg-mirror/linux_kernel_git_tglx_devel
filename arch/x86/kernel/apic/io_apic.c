@@ -55,7 +55,6 @@
 #include <asm/smp.h>
 #include <asm/cpu.h>
 #include <asm/desc.h>
-#include <asm/proto.h>
 #include <asm/acpi.h>
 #include <asm/dma.h>
 #include <asm/timer.h>
