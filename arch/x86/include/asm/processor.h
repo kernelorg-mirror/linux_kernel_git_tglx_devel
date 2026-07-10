@@ -71,21 +71,10 @@ struct vm86;
 DECLARE_PER_CPU_READ_MOSTLY(struct cpuinfo_x86, cpu_info);
 #define cpu_data(cpu)		per_cpu(cpu_info, cpu)
 
-extern const struct seq_operations cpuinfo_op;
-
-extern void cpu_detect(struct cpuinfo_x86 *c);
-
 static inline unsigned long long l1tf_pfn_limit(void)
 {
 	return BIT_ULL(boot_cpu_data.x86_cache_bits - 1 - PAGE_SHIFT);
 }
-
-void init_cpu_devs(void);
-void get_cpu_vendor(struct cpuinfo_x86 *c);
-extern void early_cpu_init(void);
-extern void identify_secondary_cpu(unsigned int cpu);
-extern void print_cpu_info(struct cpuinfo_x86 *);
-void print_cpu_msr(struct cpuinfo_x86 *);
 
 /*
  * Friendlier CR3 helpers.
@@ -568,11 +557,8 @@ static __always_inline void amd_clear_divider(void)
 	asm volatile(ALTERNATIVE("", "div %2\n\t", X86_BUG_DIV0)
 		     :: "a" (0), "d" (0), "r" (1));
 }
-
-extern void amd_check_microcode(void);
 #else
 static inline void amd_clear_divider(void)		{ }
-static inline void amd_check_microcode(void)		{ }
 #endif
 
 extern unsigned long arch_align_stack(unsigned long sp);
@@ -588,7 +574,6 @@ bool xen_set_default_idle(void);
 
 void __noreturn stop_this_cpu(void *dummy);
 extern bool x86_hypervisor_present;
-void microcode_check(struct cpuinfo_x86 *prev_info);
 void store_cpu_caps(struct cpuinfo_x86 *info);
 
 DECLARE_PER_CPU(bool, cache_state_incoherent);

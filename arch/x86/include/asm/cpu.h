@@ -66,4 +66,22 @@ int intel_microcode_sanity_check(void *mc, bool print_err, int hdr_type);
 
 extern struct cpumask cpus_stop_mask;
 
+extern const struct seq_operations cpuinfo_op;
+
+extern void cpu_detect(struct cpuinfo_x86 *c);
+void init_cpu_devs(void);
+void get_cpu_vendor(struct cpuinfo_x86 *c);
+extern void early_cpu_init(void);
+extern void identify_secondary_cpu(unsigned int cpu);
+extern void print_cpu_info(struct cpuinfo_x86 *);
+void print_cpu_msr(struct cpuinfo_x86 *);
+
+#ifdef CONFIG_CPU_SUP_AMD
+extern void amd_check_microcode(void);
+#else
+static inline void amd_check_microcode(void)		{ }
+#endif
+
+void microcode_check(struct cpuinfo_x86 *prev_info);
+
 #endif /* _ASM_X86_CPU_H */
