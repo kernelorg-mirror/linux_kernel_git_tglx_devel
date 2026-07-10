@@ -5,7 +5,9 @@
 #include <linux/debugfs.h>
 #include <linux/blkdev.h>
 #include <linux/parser.h>
+#include <linux/random.h>
 #include <linux/seq_file.h>
+
 #include "blk.h"
 #include "error-injection.h"
 

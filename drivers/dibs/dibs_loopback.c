@@ -13,6 +13,7 @@
 #include <linux/device.h>
 #include <linux/dibs.h>
 #include <linux/mm.h>
+#include <linux/random.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/types.h>

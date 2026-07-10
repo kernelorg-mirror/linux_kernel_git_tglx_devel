@@ -4,6 +4,8 @@
 //
 // Copyright 2023 Arm Ltd
 
+#include <linux/random.h>
+
 #include <kunit/device.h>
 #include <kunit/resource.h>
 #include <kunit/test.h>

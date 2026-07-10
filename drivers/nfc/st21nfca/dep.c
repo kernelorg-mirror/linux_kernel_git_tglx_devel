@@ -2,7 +2,7 @@
 /*
  * Copyright (C) 2014  STMicroelectronics SAS. All rights reserved.
  */
-
+#include <linux/random.h>
 #include <net/nfc/hci.h>
 
 #include "st21nfca.h"

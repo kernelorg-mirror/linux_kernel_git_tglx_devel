@@ -11,6 +11,7 @@
 #include <linux/bitmap.h>
 #include <linux/bits.h>
 #include <linux/device.h>
+#include <linux/random.h>
 #include <linux/regmap.h>
 
 #include "ppe.h"

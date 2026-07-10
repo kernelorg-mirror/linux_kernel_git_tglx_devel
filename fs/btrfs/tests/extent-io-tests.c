@@ -3,8 +3,9 @@
  * Copyright (C) 2013 Fusion IO.  All rights reserved.
  */
 
-#include <linux/pagemap.h>
 #include <linux/folio_batch.h>
+#include <linux/pagemap.h>
+#include <linux/random.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/sizes.h>

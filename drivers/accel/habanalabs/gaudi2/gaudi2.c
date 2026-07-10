@@ -15,10 +15,11 @@
 #include "../include/gaudi2/gaudi2_async_ids_map_extended.h"
 #include "../include/gaudi2/arc/gaudi2_arc_common_packets.h"
 
-#include <linux/module.h>
-#include <linux/pci.h>
 #include <linux/hwmon.h>
 #include <linux/iommu.h>
+#include <linux/module.h>
+#include <linux/pci.h>
+#include <linux/random.h>
 
 #define GAUDI2_DMA_POOL_BLK_SIZE		SZ_256		/* 256 bytes */
 

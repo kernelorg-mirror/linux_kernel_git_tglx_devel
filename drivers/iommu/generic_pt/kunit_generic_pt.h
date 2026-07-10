@@ -8,6 +8,8 @@
 #include "kunit_iommu.h"
 #include "pt_iter.h"
 
+#include <linux/random.h>
+
 static void do_map(struct kunit *test, pt_vaddr_t va, pt_oaddr_t pa,
 		   pt_vaddr_t len)
 {
