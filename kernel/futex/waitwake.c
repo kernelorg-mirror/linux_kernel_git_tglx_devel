@@ -149,6 +149,55 @@ void futex_wake_mark(struct wake_q_head *wake_q, struct futex_q *q)
 	wake_q_add_safe(wake_q, p);
 }
 
+static int evaluate_waiters(struct futex_hash_bucket *hb, union futex_key *key,
+			    unsigned int nr_wake, u32 bitset, struct futex_q **to_wake)
+{
+	unsigned int waiters = 0, wakees = 0;
+	struct futex_q *this, *next;
+
+	plist_for_each_entry_safe(this, next, &hb->chain, list) {
+		if (!futex_match(&this->key, key))
+			continue;
+
+		if (this->pi_state || this->rt_waiter)
+			return -EINVAL;
+
+		/*
+		 * Waiters are counted independent of the bitset match. Stop the
+		 * list walk when the total number of waiters becomes larger
+		 * than the number of to be woken up tasks. In that case it does
+		 * not matter how many wakees have been found. There will be
+		 * waiters queued after the wake up no matter what. But that's
+		 * only possible if there is a wakee cached in @to_wake.
+		 * Otherwise the @nr_wake = 1 cached wakee optimization would
+		 * not work. Keep walking if @wakees is still zero.
+		 */
+		if (++waiters > nr_wake && wakees)
+			return 1;
+
+		/*
+		 * If the bitset matches increment @wakees unconditionally. It
+		 * can't get larger than @nr_wake due to the exit condition
+		 * above.
+		 */
+		if (this->bitset & bitset) {
+			*to_wake = this;
+			wakees++;
+		}
+	}
+
+	/* Tell the caller whether there are more waiters than wakees */
+	return waiters > wakees;
+}
+
+static inline int collect_cached_waiter(struct wake_q_head *wake_q, struct futex_q *to_wake)
+{
+	if (!to_wake)
+		return 0;
+	to_wake->wake(wake_q, to_wake);
+	return 1;
+}
+
 static int collect_waiters(struct futex_hash_bucket *hb, struct wake_q_head *wake_q,
 			   union futex_key *key, unsigned int nr_wake, u32 bitset)
 {
@@ -179,20 +228,15 @@ static int __futex_robust_unlock(u32 __user *uaddr, void __user *pop, unsigned i
 				 struct wake_q_head *wake_q)
 {
 	union futex_key key = FUTEX_KEY_INIT;
-	int ret;
-
-	/* First unlock the futex, which requires release semantics. */
-	scoped_user_write_access(uaddr, efault_uaddr)
-		unsafe_atomic_store_release_user(0, uaddr, efault_uaddr);
+	int ret, nr_woken = 0;
 
 	/*
-	 * Clear the pending list op now. If that fails, then the task is in
-	 * deeper trouble as the robust list head is usually part of the TLS.
-	 * The chance of survival is close to zero.
+	 * In the case that unlocking of the user space lock faulted, this could
+	 * be optimized to not re-evaluate the key for private futexes, but
+	 * there is actually zero benefit to do so. It's very unlikely that the
+	 * unlock faults right after user space attempted a TID -> 0 transition
+	 * on that address, so optimizing for that corner case is pointless.
 	 */
-	if (!futex_robust_list_clear_pending(pop, flags))
-		return -EFAULT;
-
 	ret = get_futex_key(uaddr, flags, &key, FUTEX_WRITE);
 	if (unlikely(ret))
 		return ret;
@@ -200,31 +244,131 @@ static int __futex_robust_unlock(u32 __user *uaddr, void __user *pop, unsigned i
 	CLASS(hbr, hbr)(&key);
 	auto hb = hbr.hb;
 
-	if (!futex_hb_waiters_pending(hb))
-		return 0;
+	/*
+	 * This has to take the hash bucket lock unconditionally and cannot rely
+	 * on futex_hb_waiters_pending(hb) as that would open a race condition
+	 * between the unlock operation and a concurrent incoming waiter:
+	 *
+	 *						user_lock |= FUTEX_WAITERS;
+	 *   if (!futex_hb_waiters_pending(hb))
+	 *	robust_unlock(0)			atomic_inc(hb::waiters);
+	 *						lock(hb)
+	 *						// Succeeds!
+	 *						compare_user_lock()
+	 *
+	 *	    user_lock = 0; // clears the FUTEX_WAITERS bit
+	 *
+	 * Though it's likely that there is at least one waiter queued because
+	 * the userspace TID -> 0 transition failed due to the FUTEX_WAITERS bit
+	 * being set, which means the lock has to be taken in the majority of
+	 * cases anyway.
+	 *
+	 * As the FUTEX_WAITERS bit stays consistent, the optimization of the
+	 * lockless quick check is not that relevant anymore because this avoids
+	 * that the bit has to be set unconditionally by woken up waiters when
+	 * they return to user space and acquire the lock. Which means if there
+	 * was only one waiter queued the unlock is uncontended and avoids the
+	 * syscall completely.
+	 */
+	scoped_guard(spinlock, &hb->lock) {
+		struct futex_q *to_wake = NULL;
 
-	scoped_guard(spinlock, &hb->lock)
-		ret = collect_waiters(hb, wake_q, &key, nr_wake, bitset);
-	return ret;
+		/*
+		 * The unlock has to happen _before_ waiters are collected
+		 * because they can return from futex_wait() without taking the
+		 * hash bucket lock when collect_waiters() sets futex_q::lock_ptr
+		 * to NULL. That can result in the following situation:
+		 *
+		 * collect_waiters()
+		 *   collects T2		kill(T2);
+		 *	q->lock_ptr = NULL	T2 runs
+		 *				if (!q->lock_ptr)
+		 *				    return;
+		 *				exit_to_user()
+		 *				  handle_signal()
+		 *				    do_exit()
+		 *				      handle_futex_death()
+		 *				      // observes lock = TID(OWNER)
+		 * lock = FUTEX_WAITERS;
+		 *
+		 * That means all waiters which are still queued can become
+		 * stale unless there is another lock/unlock operation on the
+		 * futex later.
+		 *
+		 * Evaluate waiters and wakees to keep the FUTEX_WAITERS bit in
+		 * the user space lock consistent.
+		 */
+		ret = evaluate_waiters(hb, &key, nr_wake, bitset, &to_wake);
+		if (ret < 0)
+			return ret;
+
+		/*
+		 * Unlock the futex in user space while holding the hash bucket
+		 * lock to keep the FUTEX_WAITERS bit consistent. Newly incoming
+		 * waiters are serialized on the hash bucket lock and will
+		 * observe that the user space value has changed once they
+		 * acquired it.
+		 */
+		u32 uval = ret ? FUTEX_WAITERS : 0;
+
+		guard(pagefault)();
+		scoped_user_write_access(uaddr, efault_uaddr)
+			unsafe_atomic_store_release_user(uval, uaddr, efault_uaddr);
+
+		/*
+		 * Now that the unlock has been successful, collect the waiters
+		 * for wake up. If @nr_wake is 1, which is the common case, then
+		 * evaluate_waiters() has stored the first eligible waiter in
+		 * @to_wake, if it found one.  Spare another hash bucket walk
+		 * for that case.
+		 */
+		if (likely(nr_wake == 1))
+			nr_woken = collect_cached_waiter(wake_q, to_wake);
+		else
+			nr_woken = collect_waiters(hb, wake_q, &key, nr_wake, bitset);
+
+		/*
+		 * This should never happen because evaluate_waiters() would
+		 * have detected a PI futex mixup already.
+		 */
+		if (WARN_ON_ONCE(nr_woken < 0))
+			return nr_woken;
+	}
+
+	/*
+	 * Clear the pending list op now that everything is done. If clearing
+	 * the pending op fails, then the task is in deeper trouble as the
+	 * robust list head is usually part of the TLS. The chance of survival
+	 * is close to zero and retry is pointless as the fault is terminal.
+	 */
+	return futex_robust_list_clear_pending(pop, flags) ? nr_woken : -EFAULT;
 
 efault_uaddr:
-	return -EFAULT;
+	/* Unlock faulted. Try to fault in @uaddr and repeat if successful */
+	return fault_in_user_writeable(uaddr) ? : -EAGAIN;
 }
 
 /*
  * Robust futex unlock procedure:
  *
+ *	- count waiters to determine the FUTEX_WAITERS bit for the unlock
  *	- unlock the user space lock
- *	- clear the user space robust list pending op pointer
  *	- collect up to @nr_wake waiters
+ *	- clear the user space robust list pending op pointer
  *	- wake up the collected waiters.
  */
 static int futex_robust_unlock(u32 __user *uaddr, void __user *pop, unsigned int flags,
 			       unsigned int nr_wake, u32 bitset)
 {
 	DEFINE_WAKE_Q(wake_q);
+	int ret = -EAGAIN;
 
-	int ret = __futex_robust_unlock(uaddr, pop, flags, nr_wake, bitset, &wake_q);
+	/*
+	 * This loops in case that unlocking the user space lock faults and the
+	 * fault resolution is successful.
+	 */
+	for (; ret == -EAGAIN;)
+		ret = __futex_robust_unlock(uaddr, pop, flags, nr_wake, bitset, &wake_q);
 
 	wake_up_q(&wake_q);
 	return ret;
@@ -247,6 +391,11 @@ static int __futex_wake(u32 __user *uaddr, unsigned int flags, unsigned int nr_w
 	CLASS(hbr, hbr)(&key);
 	auto hb = hbr.hb;
 
+	/*
+	 * For regular wakeup operations the lockless quick check is
+	 * sufficient. See the ordering guarantees documentation at the top of
+	 * this file.
+	 */
 	if (!futex_hb_waiters_pending(hb))
 		return 0;
 

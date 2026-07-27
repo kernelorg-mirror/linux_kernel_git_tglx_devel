@@ -187,10 +187,10 @@ current threads TID in the lower 30 bits, it does nothing with that
 entry, and goes on to the next entry.
 
 Robust release is racy
-----------------------
+======================
 
 The removal of a robust futex from the list is racy when doing it solely in
-userspace. Quoting Thomas Gleixner for the explanation:
+user space. Quoting Thomas Gleixner for the explanation:
 
   The robust futex unlock mechanism is racy in respect to the clearing of the
   robust_list_head::list_op_pending pointer because unlock and clearing the
@@ -205,24 +205,99 @@ userspace. Quoting Thomas Gleixner for the explanation:
 A full in-depth analysis can be read at
 https://lore.kernel.org/lkml/20260316162316.356674433@kernel.org/
 
-To overcome that, the kernel needs to participate in the lock release operation.
-This ensures that the release happens "atomically" with regard to releasing
-the lock and removing the address from ``list_op_pending``. If the release is
-interrupted by a signal, the kernel will also verify if it interrupted the
-release operation.
+Keno pointed out another problem. Unlocking the futex sets the lock value
+to zero unconditionally whether there are more waiters than the ones to be
+woken up queued or not. That means the FUTEX_WAITERS bit is out of sync if
+there are more waiters queued on the futex. This is "fixed" up by the woken
+up waiter once it acquires the lock in user space by unconditionally
+setting it again. That opens another exit race window. When the futex is
+acquired by another task T in user space, which observes it as uncontended,
+and the woken up tasks exits before being able to set the FUTEX_WAITERS
+bit, then the still queued waiters are not woken up when task T unlocks the
+futex again.
 
-For the contended unlock case, where other threads are waiting for the lock
-release, there's the ``FUTEX_ROBUST_UNLOCK`` operation feature flag for the
-``futex()`` system call, which must be used with one of the following
-operations: ``FUTEX_WAKE``, ``FUTEX_WAKE_BITSET`` or ``FUTEX_UNLOCK_PI``.
-The kernel will release the lock (set the futex word to zero), clean the
-``list_op_pending`` field. Then, it will proceed with the normal wake path.
+Aside if that problem, this points out that the current unlock operations
+are suboptimal for cases where there is only a single waiter queued and
+woken up. Due to the undefined state of the FUTEX_WAITERS bit after an
+unlock the woken up task has to assume that there are further waiters and
+sets the waiter bit unconditionally, which means the subsequent unlock must
+go into the kernel even if the lock is uncontended.
 
-For the non-contended path, there's still a race between checking the futex word
-and clearing the ``list_op_pending`` field. To solve this without the need of a
-complete system call, userspace should call the virtual syscall
-``__vdso_futex_robust_listXX_try_unlock()`` (where XX is either 32 or 64,
-depending on the size of the pointer). If the vDSO call succeeds, it means that
-it released the lock and cleared ``list_op_pending``. If it fails, that means
-that there are waiters for this lock and a call to ``futex()`` syscall with
-``FUTEX_ROBUST_UNLOCK`` is needed.
+The full analysis and discussions around that are available here:
+https://lore.kernel.org/CABV8kRwvex1VvQ0eGwUQmJL_vA7AP2h64VpHqtXvfOXMvvJQZA@mail.gmail.com/
+
+To solve all of these problems the kernel provides two mechanisms for user
+space.
+
+VDSO functions for uncontended unlock
+-------------------------------------
+
+These functions try to unlock the futex by attempting a TID->0 CAS
+operation on the futex word. If that succeeds they clear the
+``list_op_pending`` pointer and return success, which means there is no
+further action required. If the CAS fails the caller has to invoke the
+futex syscall.
+
+This CAS and clear pointer sequence has obviously the same problem of being
+interrupted between the CAS and the clear operation, but the kernel knows
+the affected instruction window because the functions are in the VDSO. It
+uses this known instruction window to check on signal delivery whether the
+task was interrupted in between. If that's the case it clears the pending
+op pointer before delivering the signal.
+
+Depending on the configuration and the CPU (32/64-bit) the kernel provides
+one or two functions::
+
+  * ``__vdso_futex_robust_list64_try_unlock()``
+  * ``__vdso_futex_robust_list32_try_unlock()``
+
+The unlock operation is identical for both but the size of the pending op
+pointer differs. 32-bit systems provide only the 32-bit variant, 64-bit
+provides always the 64-bit variant and if COMPAT is enabled the 32-bit
+variant as well to support game emulators which are native 64-bit
+applications and execute/emulate 32-bit game code. Plain 32-bit
+applications running on a 64-bit COMPAT enabled kernel have only the 32-bit
+variant exposed in the VDSO.
+
+The return value of these functions is the content of the lock value
+observed by the CAS operation. On success that's the tasks TID, otherwise
+the tasks TID plus the FUTEX_WAITERS bit set.
+
+Kernel support for contended unlock
+-----------------------------------
+
+The futex syscall provides the robust unlock functionality for the
+following operations: ``FUTEX_WAKE``, ``FUTEX_WAKE_BITSET`` or
+``FUTEX_UNLOCK_PI``.  To enable it the caller has to set the
+``FUTEX_ROBUST_UNLOCK`` feature flag in the @op argument of the syscall.
+
+The default pointer size is 64-bit and can be changed to 32-bit by or'ing
+the ``FUTEX_ROBUST_UNLOCK32`` feature flag. This flag has always to be set
+by 32-bit applications even for 32-bit kernels so that they can run
+unmodified in compat mode on a 64-bit kernel. The kernels rejects 64-bit
+unlock attempts on 32-bit systems and for compat tasks on 64-bit kernels.
+
+The robust unlock addresses both the pending op pointer race and the
+FUTEX_WAITERS bit inconsistency by the following sequence of operations::
+
+  1. Locking the hash bucket
+  2. Counting the to be woken up tasks and check whether there are
+     remaining waiters.
+  3. Unlock the user space lock value with either zero or FUTEX_WAITERS
+     depending on the result of the counting in #2
+  4. Collect the to be woken waiters
+  5. Unlock the hash bucket
+  6. Clear the pending op pointer
+  7. Wake the collected waiters
+
+As the unlock operation is a plain store with release semantics, this can
+still fail to keep the FUTEX_WAITERS bit in sync when the unlocking task
+races with a new waiter, which observed the futex value with the owners
+TID and the FUTEX_WAITERS bit set and therefore invoked the futex
+syscall. But that's a harmless case because the new waiter is serialized on
+the hash bucket lock and will observe the futex value having changed and
+return to user space to try again.
+
+But user space can rely on the consistency of the FUTEX_WAITERS bit when a
+task returns from waiting in the syscall. There is no need anymore to set
+the FUTEX_WAITERS bit unconditionally when acquiring the lock.
