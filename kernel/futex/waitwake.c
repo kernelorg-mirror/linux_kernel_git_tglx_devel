@@ -182,7 +182,7 @@ int futex_wake(u32 __user *uaddr, unsigned int flags, void __user *pop, int nr_w
 	DEFINE_WAKE_Q(wake_q);
 	int ret;
 
-	if (!bitset)
+	if (!bitset || nr_wake < 0)
 		return -EINVAL;
 
 	ret = get_futex_key(uaddr, flags, &key, FUTEX_READ);
