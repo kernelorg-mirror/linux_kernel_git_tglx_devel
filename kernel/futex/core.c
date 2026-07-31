@@ -1425,12 +1425,7 @@ static inline void exit_pi_state_list(struct task_struct *curr) { }
 
 bool futex_robust_list_clear_pending(void __user *pop, unsigned int flags)
 {
-	bool size32bit = !!(flags & FLAGS_ROBUST_LIST32);
-
-	if (!IS_ENABLED(CONFIG_64BIT) && !size32bit)
-		return false;
-
-	if (IS_ENABLED(CONFIG_64BIT) && size32bit)
+	if (IS_ENABLED(CONFIG_64BIT) && flags & FLAGS_ROBUST_LIST32)
 		return compat_robust_list_clear_pending(pop);
 
 	return robust_list_clear_pending(pop);

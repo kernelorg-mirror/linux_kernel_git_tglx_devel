@@ -123,6 +123,12 @@ long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
 		    cmd != FUTEX_WAKE_BITSET &&
 		    cmd != FUTEX_UNLOCK_PI)
 			return -ENOSYS;
+		/*
+		 * 32-bit kernels only suppport 32-bit pointer size for clearing
+		 * the list pending op pointer in user space.
+		 */
+		if (!IS_ENABLED(CONFIG_64BIT) && !(flags & FLAGS_ROBUST_LIST32))
+			return -EINVAL;
 	}
 
 	switch (cmd) {
