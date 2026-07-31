@@ -347,7 +347,7 @@ static inline void futex_hb_waiters_inc(struct futex_hash_bucket *hb)
 #ifdef CONFIG_SMP
 	atomic_inc(&hb->waiters);
 	/*
-	 * Full barrier (A), see the ordering comment above.
+	 * Full barrier (A), see the ordering comment in waitwake.c
 	 */
 	smp_mb__after_atomic();
 #endif
@@ -368,7 +368,7 @@ static inline int futex_hb_waiters_pending(struct futex_hash_bucket *hb)
 {
 #ifdef CONFIG_SMP
 	/*
-	 * Full barrier (B), see the ordering comment above.
+	 * Full barrier (B), see the ordering comment in waitwake.c
 	 */
 	smp_mb();
 	return atomic_read(&hb->waiters);
