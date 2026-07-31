@@ -149,27 +149,112 @@ void futex_wake_mark(struct wake_q_head *wake_q, struct futex_q *q)
 	wake_q_add_safe(wake_q, p);
 }
 
-/*
- * If requested, clear the robust list pending op and unlock the futex
- */
-static bool futex_robust_unlock(u32 __user *uaddr, unsigned int flags, void __user *pop)
+static int collect_waiters(struct futex_hash_bucket *hb, struct wake_q_head *wake_q,
+			   union futex_key *key, unsigned int nr_wake, u32 bitset)
 {
-	if (!(flags & FLAGS_ROBUST_UNLOCK))
-		return true;
+	struct futex_q *this, *next;
+	unsigned int wakees = 0;
+
+	plist_for_each_entry_safe(this, next, &hb->chain, list) {
+		if (!futex_match(&this->key, key))
+			continue;
+
+		if (this->pi_state || this->rt_waiter)
+			return -EINVAL;
+
+		/* Check if one of the bits is set in both bitsets */
+		if (!(this->bitset & bitset))
+			continue;
+
+		this->wake(wake_q, this);
+		if (++wakees == nr_wake)
+			break;
+	}
+
+	return wakees;
+}
+
+static int __futex_robust_unlock(u32 __user *uaddr, void __user *pop, unsigned int flags,
+				 unsigned int nr_wake, u32 bitset,
+				 struct wake_q_head *wake_q)
+{
+	union futex_key key = FUTEX_KEY_INIT;
+	int ret;
 
 	/* First unlock the futex, which requires release semantics. */
-	scoped_user_write_access(uaddr, efault)
-		unsafe_atomic_store_release_user(0, uaddr, efault);
+	scoped_user_write_access(uaddr, efault_uaddr)
+		unsafe_atomic_store_release_user(0, uaddr, efault_uaddr);
 
 	/*
 	 * Clear the pending list op now. If that fails, then the task is in
 	 * deeper trouble as the robust list head is usually part of the TLS.
 	 * The chance of survival is close to zero.
 	 */
-	return futex_robust_list_clear_pending(pop, flags);
+	if (!futex_robust_list_clear_pending(pop, flags))
+		return -EFAULT;
 
-efault:
-	return false;
+	ret = get_futex_key(uaddr, flags, &key, FUTEX_WRITE);
+	if (unlikely(ret))
+		return ret;
+
+	CLASS(hbr, hbr)(&key);
+	auto hb = hbr.hb;
+
+	if (!futex_hb_waiters_pending(hb))
+		return 0;
+
+	scoped_guard(spinlock, &hb->lock)
+		ret = collect_waiters(hb, wake_q, &key, nr_wake, bitset);
+	return ret;
+
+efault_uaddr:
+	return -EFAULT;
+}
+
+/*
+ * Robust futex unlock procedure:
+ *
+ *	- unlock the user space lock
+ *	- clear the user space robust list pending op pointer
+ *	- collect up to @nr_wake waiters
+ *	- wake up the collected waiters.
+ */
+static int futex_robust_unlock(u32 __user *uaddr, void __user *pop, unsigned int flags,
+			       unsigned int nr_wake, u32 bitset)
+{
+	DEFINE_WAKE_Q(wake_q);
+
+	int ret = __futex_robust_unlock(uaddr, pop, flags, nr_wake, bitset, &wake_q);
+
+	wake_up_q(&wake_q);
+	return ret;
+}
+
+/*
+ * Plain wake() operation procedure:
+ *	- collect and wake up to @nr_wake waiters
+ */
+static int __futex_wake(u32 __user *uaddr, unsigned int flags, unsigned int nr_wake, u32 bitset)
+{
+	union futex_key key = FUTEX_KEY_INIT;
+	DEFINE_WAKE_Q(wake_q);
+	int ret;
+
+	ret = get_futex_key(uaddr, flags, &key, FUTEX_READ);
+	if (unlikely(ret))
+		return ret;
+
+	CLASS(hbr, hbr)(&key);
+	auto hb = hbr.hb;
+
+	if (!futex_hb_waiters_pending(hb))
+		return 0;
+
+	scoped_guard(spinlock, &hb->lock)
+		ret = collect_waiters(hb, &wake_q, &key, nr_wake, bitset);
+
+	wake_up_q(&wake_q);
+	return ret;
 }
 
 /*
@@ -177,53 +262,22 @@ efault:
  */
 int futex_wake(u32 __user *uaddr, unsigned int flags, void __user *pop, int nr_wake, u32 bitset)
 {
-	union futex_key key = FUTEX_KEY_INIT;
-	struct futex_q *this, *next;
-	DEFINE_WAKE_Q(wake_q);
-	int ret;
+	bool robust_unlock = !!(flags & FLAGS_ROBUST_UNLOCK);
 
 	if (!bitset || nr_wake < 0)
 		return -EINVAL;
 
-	ret = get_futex_key(uaddr, flags, &key, FUTEX_READ);
-	if (unlikely(ret != 0))
-		return ret;
-
-	if (!futex_robust_unlock(uaddr, flags, pop))
-		return -EFAULT;
-
-	if ((flags & FLAGS_STRICT) && !nr_wake)
-		return 0;
-
-	CLASS(hbr, hbr)(&key);
-	auto hb = hbr.hb;
-
-	/* Make sure we really have tasks to wakeup */
-	if (!futex_hb_waiters_pending(hb))
-		return ret;
-
-	spin_lock(&hb->lock);
-
-	plist_for_each_entry_safe(this, next, &hb->chain, list) {
-		if (futex_match (&this->key, &key)) {
-			if (this->pi_state || this->rt_waiter) {
-				ret = -EINVAL;
-				break;
-			}
-
-			/* Check if one of the bits is set in both bitsets */
-			if (!(this->bitset & bitset))
-				continue;
-
-			this->wake(&wake_q, this);
-			if (++ret >= nr_wake)
-				break;
-		}
+	if (unlikely(!nr_wake)) {
+		if (flags & FLAGS_STRICT)
+			return robust_unlock ? -EINVAL : 0;
+		/* Backwards compatibility for sys_futex() */
+		nr_wake = 1;
 	}
 
-	spin_unlock(&hb->lock);
-	wake_up_q(&wake_q);
-	return ret;
+	if (robust_unlock)
+		return futex_robust_unlock(uaddr, pop, flags, nr_wake, bitset);
+
+	return __futex_wake(uaddr, flags, nr_wake, bitset);
 }
 
 static int futex_atomic_op_inuser(unsigned int encoded_op, u32 __user *uaddr)
