@@ -991,7 +991,8 @@ void start_kernel(void)
 
 	cgroup_init_early();
 
-	local_irq_disable();
+	lockdep_assert_irqs_disabled();
+
 	early_boot_irqs_disabled = true;
 
 	/*
