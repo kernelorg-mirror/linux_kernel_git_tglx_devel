@@ -13,6 +13,7 @@
 #define _LINUX_TRACE_IRQFLAGS_H
 
 #include <linux/irqflags_types.h>
+#include <linux/preempt.h>
 #include <linux/typecheck.h>
 #include <linux/cleanup.h>
 #include <asm/irqflags.h>
@@ -165,6 +166,94 @@ extern void warn_bogus_irq_restore(void);
 /*
  * Wrap the architecture specific routines to provide appropriate checks.
  */
+#ifdef CONFIG_PREEMPT_COUNT_IRQFLAGS
+
+void preempt_count_irqflags_debug(unsigned int which, unsigned int expected);
+
+enum {
+	IRQFLAGS_ASSERT_DISABLE,
+	IRQFLAGS_ASSERT_ENABLE,
+	IRQFLAGS_ASSERT_SAVE,
+	IRQFLAGS_ASSERT_RESTORE,
+	IRQFLAGS_ASSERT_HALT,
+};
+
+#define irqflags_assert_eq(w, e)					\
+do {									\
+	if (unlikely((preempt_count() & HARDIRQ_DISABLE_MASK) != (e)))	\
+		preempt_count_irqflags_debug(w, e);			\
+} while (0)
+
+#define irqflags_assert_ne(w, e)					\
+do {									\
+	if (unlikely((preempt_count() & HARDIRQ_DISABLE_MASK) == (e)))	\
+		preempt_count_irqflags_debug(w, e);			\
+} while (0)
+
+static __always_inline void raw_local_irq_disable(void)
+{
+	irqflags_assert_eq(IRQFLAGS_ASSERT_DISABLE, 0);
+	arch_local_irq_disable();
+	__preempt_count_add(HARDIRQ_DISABLE_OFFSET);
+}
+
+static __always_inline void raw_force_local_irq_disable(void)
+{
+	arch_local_irq_disable();
+	__preempt_count_add(HARDIRQ_DISABLE_OFFSET);
+}
+
+static __always_inline void raw_local_irq_enable(void)
+{
+	irqflags_assert_eq(IRQFLAGS_ASSERT_ENABLE, HARDIRQ_DISABLE_OFFSET);
+	__preempt_count_sub(HARDIRQ_DISABLE_OFFSET);
+	arch_local_irq_enable();
+}
+
+static __always_inline unsigned long __raw_local_irq_save(void)
+{
+	irqflags_assert_ne(IRQFLAGS_ASSERT_SAVE, HARDIRQ_DISABLE_MASK);
+
+	unsigned int cnt = preempt_count() & HARDIRQ_DISABLE_MASK;
+
+	if (!cnt)
+		arch_local_irq_disable();
+	__preempt_count_add(HARDIRQ_DISABLE_OFFSET);
+
+	return cnt;
+}
+
+static __always_inline void __raw_local_irq_restore(unsigned long cnt)
+{
+	irqflags_assert_eq(IRQFLAGS_ASSERT_RESTORE, cnt + HARDIRQ_DISABLE_OFFSET);
+	if (!(__preempt_count_sub_return(HARDIRQ_DISABLE_OFFSET) & HARDIRQ_DISABLE_MASK))
+		arch_local_irq_enable();
+}
+
+static __always_inline unsigned long __raw_local_save_flags(void)
+{
+	return preempt_count() & HARDIRQ_DISABLE_MASK;
+}
+
+static __always_inline bool __raw_irqs_disabled_flags(unsigned long cnt)
+{
+	return !!cnt;
+}
+
+static __always_inline bool raw_irqs_disabled(void)
+{
+	return preempt_count() & HARDIRQ_DISABLE_MASK;
+}
+
+static __always_inline void raw_safe_halt(void)
+{
+	irqflags_assert_eq(IRQFLAGS_ASSERT_HALT, HARDIRQ_DISABLE_OFFSET);
+	__preempt_count_sub(HARDIRQ_DISABLE_OFFSET);
+	arch_safe_halt();
+}
+
+#else
+
 static __always_inline void raw_local_irq_disable(void)
 {
 	arch_local_irq_disable();
@@ -209,6 +298,8 @@ static __always_inline void raw_safe_halt(void)
 {
 	arch_safe_halt();
 }
+
+#endif
 
 #define raw_local_irq_save(flags)			\
 	do {						\

@@ -1211,3 +1211,46 @@ unsigned int __weak arch_dynirq_lower_bound(unsigned int from)
 {
 	return from;
 }
+
+#ifdef CONFIG_PREEMPT_COUNT_IRQFLAGS
+
+noinstr void preempt_count_irqflags_debug(unsigned int which, unsigned int expected)
+{
+	unsigned long flags;
+	unsigned int cnt, val;
+
+	instrumentation_begin();
+
+	flags = arch_local_irq_save();
+
+	tracing_off();
+
+	cnt = preempt_count();
+	val = cnt & HARDIRQ_DISABLE_MASK;
+	__preempt_count_sub(val);
+
+	switch (which) {
+	case IRQFLAGS_ASSERT_DISABLE:
+		break;
+	case IRQFLAGS_ASSERT_ENABLE:
+		__preempt_count_add(HARDIRQ_DISABLE_OFFSET);
+		break;
+	case IRQFLAGS_ASSERT_SAVE:
+		// The count was about to overflow. Put something random into it.
+		__preempt_count_add(10 * HARDIRQ_DISABLE_OFFSET);
+		break;
+	case IRQFLAGS_ASSERT_RESTORE:
+		__preempt_count_add(expected);
+		break;
+	case IRQFLAGS_ASSERT_HALT:
+		__preempt_count_add(HARDIRQ_DISABLE_OFFSET);
+		break;
+	}
+	arch_local_irq_restore(flags);
+	WARN_ONCE(1, "IRQFLAGS OP: %u preempt_count: %08x expected HARDIRQ_DISABLE %08x\n",
+		  which, cnt, expected);
+	instrumentation_end();
+}
+EXPORT_SYMBOL(preempt_count_irqflags_debug);
+
+#endif
