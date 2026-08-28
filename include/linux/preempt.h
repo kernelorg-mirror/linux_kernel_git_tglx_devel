@@ -169,6 +169,12 @@ static __always_inline unsigned char interrupt_context_level(void)
 #define in_interrupt()		(irq_count())
 
 /*
+ * Check whether a fault happened in an atomic context. Depending on
+ * CONFIG_PREEMPT_COUNT and CONFIG_PREEMPTION this check might be useless.
+ */
+#define fault_in_atomic()	in_atomic()
+
+/*
  * The preempt_count offset after preempt_disable();
  */
 #if defined(CONFIG_PREEMPT_COUNT)
