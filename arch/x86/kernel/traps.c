@@ -478,6 +478,16 @@ noinstr bool handle_bug(struct pt_regs *regs)
 	return handled;
 }
 
+static __always_inline bool handle_kernel_bug(struct pt_regs *regs)
+{
+	bool ret;
+
+	__preempt_count_inc_hardirqs_disable();
+	ret = handle_bug(regs);
+	__preempt_count_dec_hardirqs_disable();
+	return ret;
+}
+
 DEFINE_IDTENTRY_RAW(exc_invalid_op)
 {
 	irqentry_state_t state;
@@ -487,7 +497,7 @@ DEFINE_IDTENTRY_RAW(exc_invalid_op)
 	 * handle it before exception entry to avoid recursive WARN
 	 * in case exception entry is the one triggering WARNs.
 	 */
-	if (!user_mode(regs) && handle_bug(regs))
+	if (!user_mode(regs) && handle_kernel_bug(regs))
 		return;
 
 	state = irqentry_enter(regs);
